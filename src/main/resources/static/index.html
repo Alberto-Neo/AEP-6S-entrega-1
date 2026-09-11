@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoColeta - Solicitações</title>
+    <style>
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f6f7;
+            color: #222;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            padding: 22px;
+        }
+
+        header > * {
+            max-width: 968px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        header h1 {
+            margin: 0 auto 5px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        section {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-weight: bold;
+        }
+
+        label.full {
+            grid-column: 1 / -1;
+        }
+
+        input, select, textarea, button {
+            font: inherit;
+            padding: 10px;
+        }
+
+        textarea {
+            min-height: 85px;
+            resize: vertical;
+        }
+
+        .actions {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        button {
+            cursor: pointer;
+            border: 1px solid #aaa;
+            border-radius: 7px;
+            background: #fff;
+        }
+
+        button.primary {
+            background: #286347;
+            color: #fff;
+            border-color: #286347;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        #mensagem {
+            min-height: 22px;
+            margin: 10px 0 0;
+        }
+
+        @media (max-width: 700px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+            label.full, .actions {
+                grid-column: 1;
+            }
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid #aebbb3;
+            border-radius: 6px;
+            background: #fff;
+        }
+
+        :focus-visible {
+            outline: 3px solid #528569;
+            outline-offset: 2px;
+        }
+
+        button:hover {
+            filter: brightness(0.94);
+        }
+
+        button.danger {
+            color: #a12c2c;
+            border-color: #a12c2c;
+        }
+
+        .lista {
+            display: grid;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .card {
+            border: 1px solid #d9e1dc;
+            border-radius: 8px;
+            padding: 16px;
+            overflow-wrap: anywhere;
+        }
+
+        .card h3 {
+            margin: 0 0 12px;
+        }
+
+        .card p {
+            margin: 0 0 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .status {
+            color: #286347;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>EcoColeta</h1>
+    <div>PoC para cadastro e gerenciamento simples de solicitações de descarte.</div>
+</header>
+
+<main>
+    <section>
+        <h2 id="tituloFormulario">Nova solicitação</h2>
+        <form id="formSolicitacao">
+            <input type="hidden" id="id">
+
+            <label>
+                Título
+                <input id="titulo" type="text" maxlength="80" required>
+            </label>
+
+            <label>
+                Tipo do resíduo
+                <select id="tipo" required>
+                    <option value="ELETRONICO">Eletrônico</option>
+                    <option value="PAPEL_PAPELAO">Papel e papelão</option>
+                    <option value="PLASTICO">Plástico</option>
+                    <option value="VIDRO">Vidro</option>
+                </select>
+            </label>
+
+            <label>
+                Quantidade
+                <input id="quantidade" type="number" min="1" step="1" value="1" required>
+            </label>
+
+            <label id="campoStatus" style="display:none">
+                Status
+                <select id="status">
+                    <option value="ABERTA">Aberta</option>
+                    <option value="CONCLUIDA">Concluída</option>
+                </select>
+            </label>
+
+            <label class="full">
+                Descrição (opcional)
+                <textarea id="descricao" maxlength="300" placeholder="Descreva brevemente o material que será descartado"></textarea>
+            </label>
+
+            <div class="actions">
+                <button class="primary" id="salvar" type="submit">Cadastrar solicitação</button>
+                <button type="button" id="cancelar" style="display:none">Cancelar edição</button>
+            </div>
+        </form>
+        <div id="mensagem" role="status" aria-live="polite"></div>
+    </section>
+
+    <section>
+        <h2>Solicitações cadastradas</h2>
+        <button type="button" onclick="carregarSolicitacoes()">Atualizar lista</button>
+        <div id="lista" class="lista"></div>
+    </section>
+</main>
+
+<script>
+    const API = '/api/solicitacoes';
+    const form = document.getElementById('formSolicitacao');
+    const mensagem = document.getElementById('mensagem');
+    const tipos = {
+        ELETRONICO: 'Eletrônico',
+        PAPEL_PAPELAO: 'Papel e papelão',
+        PLASTICO: 'Plástico',
+        VIDRO: 'Vidro'
+    };
+    const titulos = {
+        ELETRONICO: 'Descarte de eletrônico',
+        PAPEL_PAPELAO: 'Descarte de papel e papelão',
+        PLASTICO: 'Descarte de plástico',
+        VIDRO: 'Descarte de vidro'
+    };
+
+    let solicitacoes = [];
+    let tituloPersonalizado = false;
+
+    function sugerirTitulo() {
+        const titulo = document.getElementById('titulo');
+        if (!tituloPersonalizado || !titulo.value.trim()) {
+            titulo.value = titulos[document.getElementById('tipo').value];
+            tituloPersonalizado = false;
+        }
+    }
+
+    function mostrarMensagem(texto) {
+        mensagem.textContent = texto;
+    }
+
+    function resetarFormulario() {
+        form.reset();
+        tituloPersonalizado = false;
+        sugerirTitulo();
+        document.getElementById('salvar').textContent = 'Cadastrar solicitação';
+        document.getElementById('id').value = '';
+        document.getElementById('quantidade').value = 1;
+        document.getElementById('status').value = 'ABERTA';
+        document.getElementById('campoStatus').style.display = 'none';
+        document.getElementById('cancelar').style.display = 'none';
+        document.getElementById('tituloFormulario').textContent = 'Nova solicitação';
+    }
+
+    async function carregarSolicitacoes() {
+        try {
+            const resposta = await fetch(API);
+            if (!resposta.ok) {
+                throw new Error('Não foi possível carregar as solicitações.');
+            }
+
+            solicitacoes = await resposta.json();
+            renderizarLista();
+        } catch (erro) {
+            mostrarMensagem(erro.message);
+        }
+    }
+
+    function renderizarLista() {
+        const lista = document.getElementById('lista');
+        lista.replaceChildren();
+
+        if (solicitacoes.length === 0) {
+            lista.textContent = 'Nenhuma solicitação cadastrada.';
+            return;
+        }
+
+        for (const solicitacao of solicitacoes) {
+            const card = document.createElement('article');
+            card.className = 'card';
+            const titulo = document.createElement('h3');
+            titulo.textContent = solicitacao.titulo;
+            const detalhes = document.createElement('p');
+            detalhes.textContent = `Tipo: ${tipos[solicitacao.tipo] || solicitacao.tipo} • Quantidade: ${solicitacao.quantidade}`;
+            const status = document.createElement('p');
+            status.className = 'status';
+            status.textContent = `Status: ${solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída'}`;
+            card.append(titulo, detalhes, status);
+            if (solicitacao.descricao?.trim()) {
+                const descricao = document.createElement('p');
+                descricao.textContent = solicitacao.descricao;
+                card.append(descricao);
+            }
+            const acoes = document.createElement('div');
+            acoes.className = 'actions';
+            const editarBotao = document.createElement('button');
+            editarBotao.textContent = 'Editar';
+            editarBotao.addEventListener('click', () => editar(solicitacao.id));
+            const excluirBotao = document.createElement('button');
+            excluirBotao.textContent = 'Excluir';
+            excluirBotao.className = 'danger';
+            excluirBotao.addEventListener('click', () => excluir(solicitacao.id));
+            acoes.append(editarBotao, excluirBotao);
+            card.append(acoes);
+            lista.append(card);
+        }
+    }
+
+    function editar(id) {
+        const solicitacao = solicitacoes.find(item => item.id === id);
+        if (!solicitacao) {
+            return;
+        }
+
+        document.getElementById('id').value = solicitacao.id;
+        document.getElementById('titulo').value = solicitacao.titulo;
+        tituloPersonalizado = true;
+        document.getElementById('tipo').value = solicitacao.tipo;
+        document.getElementById('quantidade').value = solicitacao.quantidade;
+        document.getElementById('descricao').value = solicitacao.descricao ?? '';
+        document.getElementById('status').value = solicitacao.status;
+        document.getElementById('campoStatus').style.display = 'flex';
+        document.getElementById('cancelar').style.display = 'inline-block';
+        document.getElementById('tituloFormulario').textContent = 'Editar solicitação';
+        document.getElementById('salvar').textContent = 'Salvar alterações';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function excluir(id) {
+        if (!confirm('Deseja excluir esta solicitação?')) {
+            return;
+        }
+
+        const resposta = await fetch(`${API}/${id}`, { method: 'DELETE' });
+        if (resposta.ok) {
+            mostrarMensagem('Solicitação excluída.');
+            await carregarSolicitacoes();
+        } else {
+            mostrarMensagem('Não foi possível excluir a solicitação.');
+        }
+    }
+
+    async function salvarSolicitacao(event) {
+        event.preventDefault();
+        const id = document.getElementById('id').value;
+        const dados = {
+            titulo: document.getElementById('titulo').value,
+            tipo: document.getElementById('tipo').value,
+            quantidade: Number(document.getElementById('quantidade').value),
+            descricao: document.getElementById('descricao').value
+        };
+
+        if (id) {
+            dados.status = document.getElementById('status').value;
+        }
+
+        const resposta = await fetch(id ? `${API}/${id}` : API, {
+            method: id ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (resposta.ok) {
+            mostrarMensagem(id ? 'Solicitação atualizada.' : 'Solicitação cadastrada.');
+            resetarFormulario();
+            await carregarSolicitacoes();
+        } else {
+            const erro = await resposta.json().catch(() => null);
+            mostrarMensagem(erro?.mensagem || 'Verifique os dados informados.');
+        }
+    }
+
+    document.getElementById('titulo').addEventListener('input', () => {
+        tituloPersonalizado = document.getElementById('titulo').value.trim() !== '';
+    });
+    document.getElementById('tipo').addEventListener('change', sugerirTitulo);
+    form.addEventListener('submit', salvarSolicitacao);
+    document.getElementById('cancelar').addEventListener('click', resetarFormulario);
+    // Estado inicial da página.
+    resetarFormulario();
+    carregarSolicitacoes();
+</script>
+</body>
+</html>
