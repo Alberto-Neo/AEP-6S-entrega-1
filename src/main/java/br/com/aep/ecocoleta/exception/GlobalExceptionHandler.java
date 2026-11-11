@@ -18,6 +18,12 @@ public class GlobalExceptionHandler {
                 .body(new ApiErrorResponse(ex.getMessage(), Map.of()));
     }
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiErrorResponse> handleBusiness(BusinessException ex) {
+        return ResponseEntity.badRequest()
+                .body(new ApiErrorResponse(ex.getMessage(), Map.of()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
         Map<String, String> campos = new LinkedHashMap<>();
