@@ -3,10 +3,10 @@ package br.com.aep.ecocoleta.service;
 import br.com.aep.ecocoleta.dto.SolicitacaoCreateRequest;
 import br.com.aep.ecocoleta.dto.SolicitacaoResponse;
 import br.com.aep.ecocoleta.dto.SolicitacaoUpdateRequest;
-import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
 import br.com.aep.ecocoleta.exception.BusinessException;
+import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
+import br.com.aep.ecocoleta.mapper.SolicitacaoMapper;
 import br.com.aep.ecocoleta.model.Solicitacao;
-import br.com.aep.ecocoleta.model.StatusSolicitacao;
 import br.com.aep.ecocoleta.repository.SolicitacaoRepository;
 import org.springframework.stereotype.Service;
 
@@ -16,54 +16,35 @@ import java.util.List;
 public class SolicitacaoService {
 
     private final SolicitacaoRepository repository;
-
+    private final SolicitacaoMapper mapper;
     private final UsuarioService usuarioService;
     private final PontoColetaService pontoColetaService;
 
     public SolicitacaoService(SolicitacaoRepository repository, UsuarioService usuarioService,
-                              PontoColetaService pontoColetaService) {
+                              PontoColetaService pontoColetaService, SolicitacaoMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
         this.usuarioService = usuarioService;
         this.pontoColetaService = pontoColetaService;
     }
 
     public SolicitacaoResponse criar(SolicitacaoCreateRequest request) {
         validarRelacionamentos(request.usuarioId(), request.pontoColetaId());
-        Solicitacao solicitacao = new Solicitacao(
-                null,
-                request.titulo(),
-                request.tipo(),
-                request.quantidade(),
-                request.descricao(),
-                StatusSolicitacao.ABERTA,
-                request.usuarioId().trim(),
-                request.pontoColetaId().trim()
-        );
-        return toResponse(repository.save(solicitacao));
+        return mapper.toResponse(repository.save(mapper.toModel(request)));
     }
 
     public List<SolicitacaoResponse> listar() {
-        return repository.findAll().stream().map(this::toResponse).toList();
+        return repository.findAll().stream().map(mapper::toResponse).toList();
     }
 
     public SolicitacaoResponse buscarPorId(String id) {
-        return toResponse(buscarEntidade(id));
+        return mapper.toResponse(buscarEntidade(id));
     }
 
     public SolicitacaoResponse atualizar(String id, SolicitacaoUpdateRequest request) {
-        buscarEntidade(id);
+        Solicitacao atual = buscarEntidade(id);
         validarRelacionamentos(request.usuarioId(), request.pontoColetaId());
-        Solicitacao atualizada = new Solicitacao(
-                id,
-                request.titulo(),
-                request.tipo(),
-                request.quantidade(),
-                request.descricao(),
-                request.status(),
-                request.usuarioId().trim(),
-                request.pontoColetaId().trim()
-        );
-        return toResponse(repository.save(atualizada));
+        return mapper.toResponse(repository.save(mapper.update(atual, request)));
     }
 
     public void excluir(String id) {
@@ -85,18 +66,5 @@ public class SolicitacaoService {
     private Solicitacao buscarEntidade(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitacao nao encontrada"));
-    }
-
-    private SolicitacaoResponse toResponse(Solicitacao solicitacao) {
-        return new SolicitacaoResponse(
-                solicitacao.id(),
-                solicitacao.titulo(),
-                solicitacao.tipo(),
-                solicitacao.quantidade(),
-                solicitacao.descricao(),
-                solicitacao.status(),
-                solicitacao.usuarioId(),
-                solicitacao.pontoColetaId()
-        );
     }
 }

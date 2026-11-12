@@ -2,6 +2,7 @@ package br.com.aep.ecocoleta.controller;
 
 import br.com.aep.ecocoleta.exception.GlobalExceptionHandler;
 import br.com.aep.ecocoleta.mapper.PontoColetaMapper;
+import br.com.aep.ecocoleta.mapper.SolicitacaoMapper;
 import br.com.aep.ecocoleta.mapper.UsuarioMapper;
 import br.com.aep.ecocoleta.model.PontoColeta;
 import br.com.aep.ecocoleta.model.Solicitacao;
@@ -39,8 +40,8 @@ class SolicitacaoRelacionamentoTest {
     private PontoColetaRepository pontos;
     private MockMvc mvc;
     private final Usuario usuario = new Usuario("u1", "Ana", "ana@exemplo.com", Instant.now());
-    private final Solicitacao existente = new Solicitacao("s1", "Titulo", TipoResiduo.VIDRO, 1,
-            null, StatusSolicitacao.ABERTA, "u1", "p1");
+    private final Solicitacao existente = new Solicitacao("s1", "Titulo", TipoResiduo.VIDRO,
+            1, null, StatusSolicitacao.ABERTA, "u1", "p1", null, null, null);
 
     @BeforeEach
     void setUp() {
@@ -49,14 +50,19 @@ class SolicitacaoRelacionamentoTest {
         pontos = mock(PontoColetaRepository.class);
         var usuarioService = new UsuarioService(usuarios, new UsuarioMapper(), solicitacoes);
         var pontoService = new PontoColetaService(pontos, new PontoColetaMapper());
-        var service = new SolicitacaoService(solicitacoes, usuarioService, pontoService);
+        var service = new SolicitacaoService(solicitacoes, usuarioService, pontoService, new SolicitacaoMapper());
         mvc = MockMvcBuilders.standaloneSetup(new SolicitacaoController(service), new UsuarioController(usuarioService))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
     }
 
     private ObjectNode dados() {
-        return new ObjectMapper().createObjectNode().put("titulo", "Titulo").put("tipo", "VIDRO")
+        ObjectNode dados = new ObjectMapper().createObjectNode().put("titulo", "Titulo").put("tipo", "VIDRO")
                 .put("quantidade", 1).put("status", "ABERTA").put("usuarioId", "u1").put("pontoColetaId", "p1");
+        dados.putObject("endereco").put("rua", "Rua A").put("numero", "10")
+                .put("bairro", "Centro").put("cidade", "Maringa");
+        dados.putArray("itens").addObject().put("tipo", "VIDRO").put("quantidade", 1);
+        dados.remove(List.of("tipo", "quantidade"));
+        return dados;
     }
 
     private void relacionamentosValidos() {
@@ -69,7 +75,9 @@ class SolicitacaoRelacionamentoTest {
         relacionamentosValidos();
         when(solicitacoes.save(any())).thenAnswer(i -> {
             Solicitacao s = i.getArgument(0);
-            return new Solicitacao("s1", s.titulo(), s.tipo(), s.quantidade(), s.descricao(), s.status(), s.usuarioId(), s.pontoColetaId());
+            return new Solicitacao("s1", s.titulo(), s.tipo(), s.quantidade(),
+                    s.descricao(), s.status(), s.usuarioId(), s.pontoColetaId(), s.endereco(), s.itens(),
+                    s.criadoEm());
         });
         var body = dados().put("usuarioId", " u1 ").put("pontoColetaId", " p1 ");
         mvc.perform(post("/api/solicitacoes").contentType(MediaType.APPLICATION_JSON).content(body.toString()))

@@ -194,20 +194,19 @@
                 <input id="titulo" type="text" maxlength="80" required>
             </label>
 
-            <label>
-                Tipo do resíduo
-                <select id="tipo" required>
-                    <option value="ELETRONICO">Eletrônico</option>
-                    <option value="PAPEL_PAPELAO">Papel e papelão</option>
-                    <option value="PLASTICO">Plástico</option>
-                    <option value="VIDRO">Vidro</option>
-                </select>
-            </label>
+            <fieldset style="grid-column: 1 / -1">
+                <legend>Endereço da coleta</legend>
+                <label>Rua <input id="rua" required></label>
+                <label>Número <input id="numero" required></label>
+                <label>Bairro <input id="bairro" required></label>
+                <label>Cidade <input id="cidade" required></label>
+            </fieldset>
 
-            <label>
-                Quantidade
-                <input id="quantidade" type="number" min="1" step="1" value="1" required>
-            </label>
+            <fieldset style="grid-column: 1 / -1">
+                <legend>Itens de resíduo</legend>
+                <div id="itens"></div>
+                <button type="button" id="adicionarItem">Adicionar item</button>
+            </fieldset>
 
             <label id="campoStatus" style="display:none">
                 Status
@@ -257,10 +256,55 @@
     let solicitacoes = [];
     let tituloPersonalizado = false;
 
+    function itensDaSolicitacao(solicitacao) {
+        if (solicitacao.itens?.length) return solicitacao.itens;
+        return solicitacao.tipo ? [{ tipo: solicitacao.tipo, quantidade: solicitacao.quantidade }] : [];
+    }
+
+    function adicionarItem(item = {}) {
+        const linha = document.createElement('div');
+        linha.className = 'item-residuo';
+        const tipoLabel = document.createElement('label');
+        tipoLabel.textContent = 'Tipo do resíduo';
+        const tipo = document.createElement('select');
+        tipo.className = 'item-tipo';
+        tipo.required = true;
+        for (const [valor, nome] of Object.entries(tipos)) {
+            tipo.add(new Option(nome, valor));
+        }
+        tipo.value = item.tipo ?? 'ELETRONICO';
+        tipo.addEventListener('change', sugerirTitulo);
+        tipoLabel.append(tipo);
+        const quantidadeLabel = document.createElement('label');
+        quantidadeLabel.textContent = 'Quantidade';
+        const quantidade = document.createElement('input');
+        quantidade.className = 'item-quantidade';
+        quantidade.type = 'number';
+        quantidade.min = '1';
+        quantidade.max = '2147483647';
+        quantidade.step = '1';
+        quantidade.required = true;
+        quantidade.value = item.quantidade ?? 1;
+        quantidadeLabel.append(quantidade);
+        const remover = document.createElement('button');
+        remover.type = 'button';
+        remover.textContent = 'Remover item';
+        remover.addEventListener('click', () => {
+            if (document.querySelectorAll('.item-residuo').length === 1) {
+                mostrarMensagem('Informe pelo menos um item.');
+                return;
+            }
+            linha.remove();
+            sugerirTitulo();
+        });
+        linha.append(tipoLabel, quantidadeLabel, remover);
+        document.getElementById('itens').append(linha);
+    }
+
     function sugerirTitulo() {
         const titulo = document.getElementById('titulo');
         if (!tituloPersonalizado || !titulo.value.trim()) {
-            titulo.value = titulos[document.getElementById('tipo').value];
+            titulo.value = titulos[document.querySelector('.item-tipo').value];
             tituloPersonalizado = false;
         }
     }
@@ -271,11 +315,12 @@
 
     function resetarFormulario() {
         form.reset();
+        document.getElementById('itens').replaceChildren();
+        adicionarItem();
         tituloPersonalizado = false;
         sugerirTitulo();
         document.getElementById('salvar').textContent = 'Cadastrar solicitação';
         document.getElementById('id').value = '';
-        document.getElementById('quantidade').value = 1;
         document.getElementById('status').value = 'ABERTA';
         document.getElementById('campoStatus').style.display = 'none';
         document.getElementById('cancelar').style.display = 'none';
@@ -311,7 +356,8 @@
             const titulo = document.createElement('h3');
             titulo.textContent = solicitacao.titulo;
             const detalhes = document.createElement('p');
-            detalhes.textContent = `Tipo: ${tipos[solicitacao.tipo] || solicitacao.tipo} • Quantidade: ${solicitacao.quantidade}`;
+            detalhes.textContent = itensDaSolicitacao(solicitacao)
+                .map(item => `${tipos[item.tipo] || item.tipo}: ${item.quantidade}`).join(' • ');
             const status = document.createElement('p');
             status.className = 'status';
             status.textContent = `Status: ${solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída'}`;
@@ -319,6 +365,10 @@
             const vinculos = document.createElement('p');
             vinculos.textContent = `Usuário: ${solicitacao.usuarioId || 'Não informado'} • Ponto: ${solicitacao.pontoColetaId || 'Não informado'}`;
             card.append(vinculos);
+            const endereco = document.createElement('p');
+            const e = solicitacao.endereco;
+            endereco.textContent = e ? `${e.rua}, ${e.numero} • ${e.bairro} • ${e.cidade}` : 'Endereço não informado';
+            card.append(endereco);
             if (solicitacao.descricao?.trim()) {
                 const descricao = document.createElement('p');
                 descricao.textContent = solicitacao.descricao;
@@ -350,8 +400,13 @@
         document.getElementById('pontoColetaId').value = solicitacao.pontoColetaId ?? '';
         document.getElementById('titulo').value = solicitacao.titulo;
         tituloPersonalizado = true;
-        document.getElementById('tipo').value = solicitacao.tipo;
-        document.getElementById('quantidade').value = solicitacao.quantidade;
+        for (const campo of ['rua', 'numero', 'bairro', 'cidade']) {
+            document.getElementById(campo).value = solicitacao.endereco?.[campo] ?? '';
+        }
+        document.getElementById('itens').replaceChildren();
+        const itens = itensDaSolicitacao(solicitacao);
+        if (itens.length) itens.forEach(adicionarItem);
+        else adicionarItem();
         document.getElementById('descricao').value = solicitacao.descricao ?? '';
         document.getElementById('status').value = solicitacao.status;
         document.getElementById('campoStatus').style.display = 'flex';
@@ -382,8 +437,12 @@
             usuarioId: document.getElementById('usuarioId').value.trim(),
             pontoColetaId: document.getElementById('pontoColetaId').value.trim(),
             titulo: document.getElementById('titulo').value,
-            tipo: document.getElementById('tipo').value,
-            quantidade: Number(document.getElementById('quantidade').value),
+            endereco: Object.fromEntries(['rua', 'numero', 'bairro', 'cidade']
+                .map(campo => [campo, document.getElementById(campo).value.trim()])),
+            itens: Array.from(document.querySelectorAll('.item-residuo'), linha => ({
+                tipo: linha.querySelector('.item-tipo').value,
+                quantidade: Number(linha.querySelector('.item-quantidade').value)
+            })),
             descricao: document.getElementById('descricao').value
         };
 
@@ -410,7 +469,7 @@
     document.getElementById('titulo').addEventListener('input', () => {
         tituloPersonalizado = document.getElementById('titulo').value.trim() !== '';
     });
-    document.getElementById('tipo').addEventListener('change', sugerirTitulo);
+    document.getElementById('adicionarItem').addEventListener('click', () => adicionarItem());
     form.addEventListener('submit', salvarSolicitacao);
     document.getElementById('cancelar').addEventListener('click', resetarFormulario);
     // Estado inicial da página.

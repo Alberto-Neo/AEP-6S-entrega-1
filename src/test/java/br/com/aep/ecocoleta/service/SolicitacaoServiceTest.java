@@ -1,8 +1,11 @@
 package br.com.aep.ecocoleta.service;
 
+import br.com.aep.ecocoleta.dto.EnderecoRequest;
+import br.com.aep.ecocoleta.dto.ItemResiduoRequest;
 import br.com.aep.ecocoleta.dto.SolicitacaoCreateRequest;
 import br.com.aep.ecocoleta.dto.SolicitacaoUpdateRequest;
 import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
+import br.com.aep.ecocoleta.mapper.SolicitacaoMapper;
 import br.com.aep.ecocoleta.model.Solicitacao;
 import br.com.aep.ecocoleta.model.StatusSolicitacao;
 import br.com.aep.ecocoleta.model.TipoResiduo;
@@ -33,17 +36,21 @@ class SolicitacaoServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SolicitacaoService(repository, mock(UsuarioService.class), mock(PontoColetaService.class));
+        service = new SolicitacaoService(repository, mock(UsuarioService.class),
+                mock(PontoColetaService.class), new SolicitacaoMapper());
     }
 
     @Test
     void deveCriarSolicitacaoComStatusAberta() {
-        var request = new SolicitacaoCreateRequest(
-                "Descarte de eletrônico", TipoResiduo.ELETRONICO, 1, "Monitor antigo", "u1", "p1");
+        var request = new SolicitacaoCreateRequest("Descarte de eletrônico", "Monitor antigo",
+                "u1", "p1", new EnderecoRequest("Rua A", "10", "Centro", "Maringa"), List.of(new ItemResiduoRequest(TipoResiduo.ELETRONICO,
+                1)));
 
         when(repository.save(any(Solicitacao.class))).thenAnswer(invocacao -> {
             Solicitacao s = invocacao.getArgument(0);
-            return new Solicitacao("1", s.titulo(), s.tipo(), s.quantidade(), s.descricao(), s.status(), s.usuarioId(), s.pontoColetaId());
+            return new Solicitacao("1", s.titulo(), s.tipo(), s.quantidade(),
+                    s.descricao(), s.status(), s.usuarioId(), s.pontoColetaId(), s.endereco(), s.itens(),
+                    s.criadoEm());
         });
 
         var response = service.criar(request);
@@ -56,7 +63,8 @@ class SolicitacaoServiceTest {
     @Test
     void deveListarSolicitacoes() {
         when(repository.findAll()).thenReturn(List.of(
-                new Solicitacao("1", "Descarte de vidro", TipoResiduo.VIDRO, 2, "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1")
+                new Solicitacao("1", "Descarte de vidro", TipoResiduo.VIDRO, 2,
+                        "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1", null, null, null)
         ));
 
         var resultado = service.listar();
@@ -68,7 +76,8 @@ class SolicitacaoServiceTest {
     @Test
     void deveBuscarSolicitacaoPorId() {
         when(repository.findById("1")).thenReturn(Optional.of(
-                new Solicitacao("1", "Descarte de vidro", TipoResiduo.VIDRO, 3, "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1")
+                new Solicitacao("1", "Descarte de vidro", TipoResiduo.VIDRO, 3,
+                        "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1", null, null, null)
         ));
 
         var resultado = service.buscarPorId("1");
@@ -87,12 +96,14 @@ class SolicitacaoServiceTest {
     @Test
     void deveAtualizarSolicitacao() {
         when(repository.findById("1")).thenReturn(Optional.of(
-                new Solicitacao("1", "Antiga", TipoResiduo.PAPEL_PAPELAO, 1, "Antiga", StatusSolicitacao.ABERTA, "u1", "p1")
+                new Solicitacao("1", "Antiga", TipoResiduo.PAPEL_PAPELAO, 1, "Antiga",
+                        StatusSolicitacao.ABERTA, "u1", "p1", null, null, null)
         ));
         when(repository.save(any(Solicitacao.class))).thenAnswer(invocacao -> invocacao.getArgument(0));
 
-        var request = new SolicitacaoUpdateRequest(
-                "Descarte de plástico", TipoResiduo.PLASTICO, 5, "Garrafas PET", StatusSolicitacao.CONCLUIDA, "u1", "p1");
+        var request = new SolicitacaoUpdateRequest("Descarte de plástico", "Garrafas PET",
+                StatusSolicitacao.CONCLUIDA, "u1", "p1", new EnderecoRequest("Rua A", "10", "Centro",
+                "Maringa"), List.of(new ItemResiduoRequest(TipoResiduo.PLASTICO, 5)));
 
         var resultado = service.atualizar("1", request);
 
@@ -102,8 +113,8 @@ class SolicitacaoServiceTest {
 
     @Test
     void deveExcluirSolicitacao() {
-        Solicitacao solicitacao = new Solicitacao(
-                "1", "Descarte", TipoResiduo.PAPEL_PAPELAO, 1, "Item", StatusSolicitacao.ABERTA, "u1", "p1");
+        Solicitacao solicitacao = new Solicitacao("1", "Descarte", TipoResiduo.PAPEL_PAPELAO,
+                1, "Item", StatusSolicitacao.ABERTA, "u1", "p1", null, null, null);
         when(repository.findById("1")).thenReturn(Optional.of(solicitacao));
 
         service.excluir("1");
@@ -115,8 +126,9 @@ class SolicitacaoServiceTest {
     @NullAndEmptySource
     void devePersistirSemDescricaoComStatusAberta(String descricao) {
         when(repository.save(any(Solicitacao.class))).thenAnswer(invocacao -> invocacao.getArgument(0));
-        var resposta = service.criar(new SolicitacaoCreateRequest(
-                "Descarte de vidro", TipoResiduo.VIDRO, 1, descricao, "u1", "p1"));
+        var resposta = service.criar(new SolicitacaoCreateRequest("Descarte de vidro",
+                descricao, "u1", "p1", new EnderecoRequest("Rua A", "10", "Centro", "Maringa"),
+                List.of(new ItemResiduoRequest(TipoResiduo.VIDRO, 1))));
         assertEquals(descricao, resposta.descricao());
         assertEquals(StatusSolicitacao.ABERTA, resposta.status());
         verify(repository).save(argThat(s -> Objects.equals(descricao, s.descricao())

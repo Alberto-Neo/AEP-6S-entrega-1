@@ -41,9 +41,9 @@ class SolicitacaoControllerTest {
 
     @Test
     void deveCriarSolicitacao() throws Exception {
-        when(service.criar(any())).thenReturn(new SolicitacaoResponse(
-                "1", "Descarte de eletrônico", TipoResiduo.ELETRONICO, 1,
-                "Monitor antigo", StatusSolicitacao.ABERTA, "u1", "p1"));
+        when(service.criar(any())).thenReturn(new SolicitacaoResponse("1", "Descarte de eletrônico",
+                TipoResiduo.ELETRONICO, 1, "Monitor antigo", StatusSolicitacao.ABERTA, "u1",
+                "p1", null, null, null));
 
         mockMvc.perform(post("/api/solicitacoes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -51,8 +51,8 @@ class SolicitacaoControllerTest {
                                 {
                                   "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"Descarte de eletrônico",
-                                  "tipo":"ELETRONICO",
-                                  "quantidade":1,
+                                  "endereco":{"rua":"Rua A","numero":"10","bairro":"Centro","cidade":"Maringa"},
+                                  "itens":[{"tipo":"ELETRONICO","quantidade":1}],
                                   "descricao":"Monitor antigo"
                                 }
                                 """))
@@ -69,8 +69,8 @@ class SolicitacaoControllerTest {
                                 {
                                   "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"",
-                                  "tipo":"ELETRONICO",
-                                  "quantidade":0,
+                                  "endereco":{"rua":"Rua A","numero":"10","bairro":"Centro","cidade":"Maringa"},
+                                  "itens":[{"tipo":"ELETRONICO","quantidade":0}],
                                   "descricao":""
                                 }
                                 """))
@@ -82,9 +82,9 @@ class SolicitacaoControllerTest {
 
     @Test
     void deveListarSolicitacoes() throws Exception {
-        when(service.listar()).thenReturn(List.of(new SolicitacaoResponse(
-                "1", "Descarte de vidro", TipoResiduo.VIDRO, 2,
-                "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1")));
+        when(service.listar()).thenReturn(List.of(new SolicitacaoResponse("1",
+                "Descarte de vidro", TipoResiduo.VIDRO, 2, "Garrafas", StatusSolicitacao.ABERTA,
+                "u1", "p1", null, null, null)));
 
         mockMvc.perform(get("/api/solicitacoes"))
                 .andExpect(status().isOk())
@@ -93,9 +93,9 @@ class SolicitacaoControllerTest {
 
     @Test
     void deveBuscarPorId() throws Exception {
-        when(service.buscarPorId("1")).thenReturn(new SolicitacaoResponse(
-                "1", "Descarte de vidro", TipoResiduo.VIDRO, 3,
-                "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1"));
+        when(service.buscarPorId("1")).thenReturn(new SolicitacaoResponse("1",
+                "Descarte de vidro", TipoResiduo.VIDRO, 3, "Garrafas", StatusSolicitacao.ABERTA,
+                "u1", "p1", null, null, null));
 
         mockMvc.perform(get("/api/solicitacoes/1"))
                 .andExpect(status().isOk())
@@ -113,9 +113,9 @@ class SolicitacaoControllerTest {
 
     @Test
     void deveAtualizarSolicitacao() throws Exception {
-        when(service.atualizar(eq("1"), any())).thenReturn(new SolicitacaoResponse(
-                "1", "Descarte de plástico", TipoResiduo.PLASTICO, 4,
-                "Garrafas PET", StatusSolicitacao.CONCLUIDA, "u1", "p1"));
+        when(service.atualizar(eq("1"), any())).thenReturn(new SolicitacaoResponse("1",
+                "Descarte de plástico", TipoResiduo.PLASTICO, 4, "Garrafas PET", StatusSolicitacao.CONCLUIDA,
+                "u1", "p1", null, null, null));
 
         mockMvc.perform(put("/api/solicitacoes/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -123,8 +123,8 @@ class SolicitacaoControllerTest {
                                 {
                                   "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"Descarte de plástico",
-                                  "tipo":"PLASTICO",
-                                  "quantidade":4,
+                                  "endereco":{"rua":"Rua A","numero":"10","bairro":"Centro","cidade":"Maringa"},
+                                  "itens":[{"tipo":"PLASTICO","quantidade":4}],
                                   "descricao":"Garrafas PET",
                                   "status":"CONCLUIDA"
                                 }
@@ -150,6 +150,7 @@ class SolicitacaoControllerTest {
                 .put("titulo", "Descarte de vidro")
                 .put("tipo", "VIDRO")
                 .put("quantidade", 1);
+        estruturaComplexa(dados);
         if ("null".equals(descricao)) {
             dados.putNull("descricao");
         } else if (!"ausente".equals(descricao)) {
@@ -157,8 +158,9 @@ class SolicitacaoControllerTest {
         }
 
         String descricaoEsperada = "ausente".equals(descricao) || "null".equals(descricao) ? null : descricao;
-        when(service.criar(any())).thenReturn(new SolicitacaoResponse(
-                "1", "Descarte de vidro", TipoResiduo.VIDRO, 1, descricaoEsperada, StatusSolicitacao.ABERTA, "u1", "p1"));
+        when(service.criar(any())).thenReturn(new SolicitacaoResponse("1", "Descarte de vidro",
+                TipoResiduo.VIDRO, 1, descricaoEsperada, StatusSolicitacao.ABERTA, "u1", "p1",
+                null, null, null));
         mockMvc.perform(post("/api/solicitacoes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dados.toString()))
@@ -184,17 +186,19 @@ class SolicitacaoControllerTest {
                 .put("tipo", "VIDRO")
                 .put("quantidade", 1)
                 .put("status", "ABERTA");
+        estruturaComplexa(dados);
+        ObjectNode item = (ObjectNode) dados.withArray("itens").get(0);
         switch (caso) {
             case "tituloAusente" -> dados.remove("titulo");
             case "tituloNulo" -> dados.putNull("titulo");
             case "tituloVazio" -> dados.put("titulo", "");
             case "tituloBranco" -> dados.put("titulo", "   ");
-            case "tipoAusente" -> dados.remove("tipo");
-            case "tipoNulo" -> dados.putNull("tipo");
-            case "quantidadeAusente" -> dados.remove("quantidade");
-            case "quantidadeNula" -> dados.putNull("quantidade");
-            case "zero" -> dados.put("quantidade", 0);
-            case "negativa" -> dados.put("quantidade", -1);
+            case "tipoAusente" -> item.remove("tipo");
+            case "tipoNulo" -> item.putNull("tipo");
+            case "quantidadeAusente" -> item.remove("quantidade");
+            case "quantidadeNula" -> item.putNull("quantidade");
+            case "zero" -> item.put("quantidade", 0);
+            case "negativa" -> item.put("quantidade", -1);
         }
         mockMvc.perform(post("/api/solicitacoes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -210,17 +214,26 @@ class SolicitacaoControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"PILHA_BATERIA", "METAL", "MOVEL", "OUTRO"})
     void deveRejeitarTiposRemovidos(String tipo) throws Exception {
-        String dados = new ObjectMapper().createObjectNode().put("usuarioId", "u1").put("pontoColetaId", "p1")
+        ObjectNode dados = new ObjectMapper().createObjectNode().put("usuarioId", "u1").put("pontoColetaId", "p1")
                 .put("titulo", "Descarte")
                 .put("tipo", tipo)
                 .put("quantidade", 1)
-                .put("status", "ABERTA").toString();
+                .put("status", "ABERTA");
+        estruturaComplexa(dados);
         mockMvc.perform(post("/api/solicitacoes")
-                        .contentType(MediaType.APPLICATION_JSON).content(dados))
+                        .contentType(MediaType.APPLICATION_JSON).content(dados.toString()))
                 .andExpect(status().isBadRequest());
         mockMvc.perform(put("/api/solicitacoes/1")
-                        .contentType(MediaType.APPLICATION_JSON).content(dados))
+                        .contentType(MediaType.APPLICATION_JSON).content(dados.toString()))
                 .andExpect(status().isBadRequest());
         verifyNoInteractions(service);
+    }
+
+    private void estruturaComplexa(ObjectNode dados) {
+        dados.putObject("endereco").put("rua", "Rua A").put("numero", "10")
+                .put("bairro", "Centro").put("cidade", "Maringa");
+        ObjectNode item = dados.putArray("itens").addObject();
+        item.set("tipo", dados.remove("tipo"));
+        item.set("quantidade", dados.remove("quantidade"));
     }
 }
