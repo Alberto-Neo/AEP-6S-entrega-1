@@ -6,9 +6,7 @@
     <title>EcoColeta - Solicitações</title>
     <style>
         * {
-
             box-sizing: border-box;
-
         }
 
         body {
@@ -104,8 +102,50 @@
             margin: 10px 0 0;
         }
 
+        fieldset {
+            grid-column: 1 / -1;
+            min-width: 0;
+            border: 1px solid #d9e1dc;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        legend {
+            font-weight: bold;
+            padding: 0 6px;
+        }
+
+        .endereco-campos, .item-residuo {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .item-residuo {
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+            align-items: end;
+            padding-bottom: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #d9e1dc;
+        }
+
+        form > label, .item-residuo > label {
+            min-width: 0;
+        }
+
+        .ajuda {
+            font-size: 0.9rem;
+            font-weight: normal;
+            color: #555;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         @media (max-width: 700px) {
-            form {
+            form, .endereco-campos, .item-residuo {
                 grid-template-columns: 1fr;
             }
             label.full, .actions {
@@ -180,29 +220,41 @@
             <input type="hidden" id="id">
 
             <label>
-                ID do usuário
-                <input id="usuarioId" type="text" required>
+                Usuário
+                <select id="usuarioId" required disabled aria-describedby="usuariosAviso">
+                    <option value="">Carregando usuários...</option>
+                </select>
+                <span class="ajuda" id="usuariosAviso" role="status"></span>
             </label>
 
             <label>
-                ID do ponto de coleta
-                <input id="pontoColetaId" type="text" required>
+                Ponto de coleta
+                <select id="pontoColetaId" required disabled aria-describedby="pontosAviso">
+                    <option value="">Carregando pontos...</option>
+                </select>
+                <span class="ajuda" id="pontosAviso" role="status"></span>
             </label>
 
-            <label>
+            <div class="actions">
+                <button type="button" id="recarregarOpcoes">Atualizar usuários e pontos</button>
+            </div>
+
+            <label class="full">
                 Título
                 <input id="titulo" type="text" maxlength="80" required>
             </label>
 
-            <fieldset style="grid-column: 1 / -1">
+            <fieldset>
                 <legend>Endereço da coleta</legend>
-                <label>Rua <input id="rua" required></label>
-                <label>Número <input id="numero" required></label>
-                <label>Bairro <input id="bairro" required></label>
-                <label>Cidade <input id="cidade" required></label>
+                <div class="endereco-campos">
+                    <label>Rua <input id="rua" required></label>
+                    <label>Número <input id="numero" required></label>
+                    <label>Bairro <input id="bairro" required></label>
+                    <label>Cidade <input id="cidade" required></label>
+                </div>
             </fieldset>
 
-            <fieldset style="grid-column: 1 / -1">
+            <fieldset>
                 <legend>Itens de resíduo</legend>
                 <div id="itens"></div>
                 <button type="button" id="adicionarItem">Adicionar item</button>
@@ -222,7 +274,7 @@
             </label>
 
             <div class="actions">
-                <button class="primary" id="salvar" type="submit">Cadastrar solicitação</button>
+                <button class="primary" id="salvar" type="submit" disabled>Cadastrar solicitação</button>
                 <button type="button" id="cancelar" style="display:none">Cancelar edição</button>
             </div>
         </form>
@@ -255,6 +307,84 @@
 
     let solicitacoes = [];
     let tituloPersonalizado = false;
+    let salvando = false;
+    const usuarios = { dados: [], carregando: true, erro: false };
+    const pontos = { dados: [], carregando: true, erro: false };
+
+    function atualizarBotaoSalvar() {
+        document.getElementById('salvar').disabled = salvando || usuarios.carregando || pontos.carregando
+            || usuarios.erro || pontos.erro || !usuarios.dados.length || !pontos.dados.length;
+    }
+
+    function preencherSeletor(id, estado, avisoId, nome, rotulo) {
+        const seletor = document.getElementById(id);
+        const selecionado = seletor.dataset.selecionado || '';
+        let aviso = '';
+        let placeholder = `Selecione ${nome}`;
+        if (estado.carregando) {
+            placeholder = 'Carregando...';
+        } else if (estado.erro) {
+            placeholder = 'Não foi possível carregar';
+            aviso = 'Falha no carregamento. Use “Atualizar usuários e pontos” para tentar novamente.';
+        } else if (!estado.dados.length) {
+            placeholder = 'Nenhuma opção disponível';
+            aviso = id === 'usuarioId'
+                ? 'Nenhum usuário cadastrado. Cadastre um usuário pela API e atualize as opções.'
+                : 'Nenhum ponto cadastrado. Verifique a inicialização da aplicação e atualize as opções.';
+        } else if (selecionado && !estado.dados.some(item => item.id === selecionado)) {
+            aviso = `Vínculo anterior indisponível (${selecionado}). Selecione uma opção existente.`;
+        }
+        seletor.replaceChildren(new Option(placeholder, '', true, true));
+        for (const item of estado.dados) {
+            seletor.add(new Option(rotulo(item), item.id));
+        }
+        if (estado.dados.some(item => item.id === selecionado)) seletor.value = selecionado;
+        seletor.disabled = estado.carregando || estado.erro || !estado.dados.length;
+        const atual = estado.dados.find(item => item.id === selecionado);
+        if (!aviso && !estado.carregando && id === 'pontoColetaId' && atual) {
+            aviso = atual.endereco;
+        }
+        document.getElementById(avisoId).textContent = aviso;
+        atualizarBotaoSalvar();
+    }
+
+    function atualizarSeletores() {
+        preencherSeletor('usuarioId', usuarios, 'usuariosAviso', 'um usuário', usuario => usuario.nome);
+        preencherSeletor('pontoColetaId', pontos, 'pontosAviso', 'um ponto de coleta',
+            ponto => `${ponto.nome} — ${ponto.endereco}${ponto.ativo === false ? ' (inativo)' : ''}`);
+    }
+
+    async function carregarOpcoes(url, estado) {
+        estado.carregando = true;
+        estado.erro = false;
+        atualizarSeletores();
+        try {
+            const resposta = await fetch(url);
+            if (!resposta.ok) throw new Error('Falha no carregamento');
+            estado.dados = await resposta.json();
+        } catch (erro) {
+            estado.erro = true;
+        } finally {
+            estado.carregando = false;
+            atualizarSeletores();
+            renderizarLista();
+        }
+    }
+
+    async function carregarRelacionamentos() {
+        const botao = document.getElementById('recarregarOpcoes');
+        botao.disabled = true;
+        await Promise.all([
+            carregarOpcoes('/api/usuarios', usuarios),
+            carregarOpcoes('/api/pontos', pontos)
+        ]);
+        botao.disabled = false;
+    }
+
+    function nomeDoVinculo(estado, id) {
+        if (!id) return 'Não informado';
+        return estado.dados.find(item => item.id === id)?.nome || `Não disponível (${id})`;
+    }
 
     function itensDaSolicitacao(solicitacao) {
         if (solicitacao.itens?.length) return solicitacao.itens;
@@ -315,6 +445,9 @@
 
     function resetarFormulario() {
         form.reset();
+        document.getElementById('usuarioId').dataset.selecionado = '';
+        document.getElementById('pontoColetaId').dataset.selecionado = '';
+        atualizarSeletores();
         document.getElementById('itens').replaceChildren();
         adicionarItem();
         tituloPersonalizado = false;
@@ -363,7 +496,7 @@
             status.textContent = `Status: ${solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída'}`;
             card.append(titulo, detalhes, status);
             const vinculos = document.createElement('p');
-            vinculos.textContent = `Usuário: ${solicitacao.usuarioId || 'Não informado'} • Ponto: ${solicitacao.pontoColetaId || 'Não informado'}`;
+            vinculos.textContent = `Usuário: ${nomeDoVinculo(usuarios, solicitacao.usuarioId)} • Ponto: ${nomeDoVinculo(pontos, solicitacao.pontoColetaId)}`;
             card.append(vinculos);
             const endereco = document.createElement('p');
             const e = solicitacao.endereco;
@@ -396,8 +529,9 @@
         }
 
         document.getElementById('id').value = solicitacao.id;
-        document.getElementById('usuarioId').value = solicitacao.usuarioId ?? '';
-        document.getElementById('pontoColetaId').value = solicitacao.pontoColetaId ?? '';
+        document.getElementById('usuarioId').dataset.selecionado = solicitacao.usuarioId ?? '';
+        document.getElementById('pontoColetaId').dataset.selecionado = solicitacao.pontoColetaId ?? '';
+        atualizarSeletores();
         document.getElementById('titulo').value = solicitacao.titulo;
         tituloPersonalizado = true;
         for (const campo of ['rua', 'numero', 'bairro', 'cidade']) {
@@ -421,17 +555,20 @@
             return;
         }
 
-        const resposta = await fetch(`${API}/${id}`, { method: 'DELETE' });
-        if (resposta.ok) {
+        try {
+            const resposta = await fetch(`${API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+            if (!resposta.ok) throw new Error('Não foi possível excluir a solicitação.');
+            if (document.getElementById('id').value === id) resetarFormulario();
             mostrarMensagem('Solicitação excluída.');
             await carregarSolicitacoes();
-        } else {
-            mostrarMensagem('Não foi possível excluir a solicitação.');
+        } catch (erro) {
+            mostrarMensagem('Não foi possível excluir a solicitação. Verifique a conexão e tente novamente.');
         }
     }
 
     async function salvarSolicitacao(event) {
         event.preventDefault();
+        if (document.getElementById('salvar').disabled || !form.reportValidity()) return;
         const id = document.getElementById('id').value;
         const dados = {
             usuarioId: document.getElementById('usuarioId').value.trim(),
@@ -450,21 +587,38 @@
             dados.status = document.getElementById('status').value;
         }
 
-        const resposta = await fetch(id ? `${API}/${id}` : API, {
-            method: id ? 'PUT' : 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-
-        if (resposta.ok) {
-            mostrarMensagem(id ? 'Solicitação atualizada.' : 'Solicitação cadastrada.');
-            resetarFormulario();
-            await carregarSolicitacoes();
-        } else {
-            const erro = await resposta.json().catch(() => null);
-            mostrarMensagem(erro?.mensagem || 'Verifique os dados informados.');
+        salvando = true;
+        atualizarBotaoSalvar();
+        try {
+            const resposta = await fetch(id ? `${API}/${encodeURIComponent(id)}` : API, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados)
+            });
+            if (resposta.ok) {
+                mostrarMensagem(id ? 'Solicitação atualizada.' : 'Solicitação cadastrada.');
+                resetarFormulario();
+                await carregarSolicitacoes();
+            } else {
+                const erro = await resposta.json().catch(() => null);
+                const detalhes = Object.values(erro?.campos || {}).join(' ');
+                mostrarMensagem(detalhes || erro?.mensagem || 'Verifique os dados informados.');
+            }
+        } catch (erro) {
+            mostrarMensagem('Não foi possível salvar. Verifique a conexão e tente novamente.');
+        } finally {
+            salvando = false;
+            atualizarBotaoSalvar();
         }
     }
+
+    for (const id of ['usuarioId', 'pontoColetaId']) {
+        document.getElementById(id).addEventListener('change', event => {
+            event.target.dataset.selecionado = event.target.value;
+            atualizarSeletores();
+        });
+    }
+    document.getElementById('recarregarOpcoes').addEventListener('click', carregarRelacionamentos);
 
     document.getElementById('titulo').addEventListener('input', () => {
         tituloPersonalizado = document.getElementById('titulo').value.trim() !== '';
@@ -474,6 +628,7 @@
     document.getElementById('cancelar').addEventListener('click', resetarFormulario);
     // Estado inicial da página.
     resetarFormulario();
+    carregarRelacionamentos();
     carregarSolicitacoes();
 </script>
 </body>
