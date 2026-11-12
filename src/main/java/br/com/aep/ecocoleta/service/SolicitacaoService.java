@@ -4,6 +4,7 @@ import br.com.aep.ecocoleta.dto.SolicitacaoCreateRequest;
 import br.com.aep.ecocoleta.dto.SolicitacaoResponse;
 import br.com.aep.ecocoleta.dto.SolicitacaoUpdateRequest;
 import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
+import br.com.aep.ecocoleta.exception.BusinessException;
 import br.com.aep.ecocoleta.model.Solicitacao;
 import br.com.aep.ecocoleta.model.StatusSolicitacao;
 import br.com.aep.ecocoleta.repository.SolicitacaoRepository;
@@ -16,18 +17,27 @@ public class SolicitacaoService {
 
     private final SolicitacaoRepository repository;
 
-    public SolicitacaoService(SolicitacaoRepository repository) {
+    private final UsuarioService usuarioService;
+    private final PontoColetaService pontoColetaService;
+
+    public SolicitacaoService(SolicitacaoRepository repository, UsuarioService usuarioService,
+                              PontoColetaService pontoColetaService) {
         this.repository = repository;
+        this.usuarioService = usuarioService;
+        this.pontoColetaService = pontoColetaService;
     }
 
     public SolicitacaoResponse criar(SolicitacaoCreateRequest request) {
+        validarRelacionamentos(request.usuarioId(), request.pontoColetaId());
         Solicitacao solicitacao = new Solicitacao(
                 null,
                 request.titulo(),
                 request.tipo(),
                 request.quantidade(),
                 request.descricao(),
-                StatusSolicitacao.ABERTA
+                StatusSolicitacao.ABERTA,
+                request.usuarioId().trim(),
+                request.pontoColetaId().trim()
         );
         return toResponse(repository.save(solicitacao));
     }
@@ -42,13 +52,16 @@ public class SolicitacaoService {
 
     public SolicitacaoResponse atualizar(String id, SolicitacaoUpdateRequest request) {
         buscarEntidade(id);
+        validarRelacionamentos(request.usuarioId(), request.pontoColetaId());
         Solicitacao atualizada = new Solicitacao(
                 id,
                 request.titulo(),
                 request.tipo(),
                 request.quantidade(),
                 request.descricao(),
-                request.status()
+                request.status(),
+                request.usuarioId().trim(),
+                request.pontoColetaId().trim()
         );
         return toResponse(repository.save(atualizada));
     }
@@ -56,6 +69,17 @@ public class SolicitacaoService {
     public void excluir(String id) {
         Solicitacao solicitacao = buscarEntidade(id);
         repository.delete(solicitacao);
+    }
+
+    private void validarRelacionamentos(String usuarioId, String pontoColetaId) {
+        if (usuarioId == null || usuarioId.isBlank()) {
+            throw new BusinessException("O usuario e obrigatorio");
+        }
+        if (pontoColetaId == null || pontoColetaId.isBlank()) {
+            throw new BusinessException("O ponto de coleta e obrigatorio");
+        }
+        usuarioService.obter(usuarioId.trim());
+        pontoColetaService.obter(pontoColetaId.trim());
     }
 
     private Solicitacao buscarEntidade(String id) {
@@ -70,7 +94,9 @@ public class SolicitacaoService {
                 solicitacao.tipo(),
                 solicitacao.quantidade(),
                 solicitacao.descricao(),
-                solicitacao.status()
+                solicitacao.status(),
+                solicitacao.usuarioId(),
+                solicitacao.pontoColetaId()
         );
     }
 }

@@ -7,6 +7,7 @@ import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
 import br.com.aep.ecocoleta.mapper.UsuarioMapper;
 import br.com.aep.ecocoleta.model.Usuario;
 import br.com.aep.ecocoleta.repository.UsuarioRepository;
+import br.com.aep.ecocoleta.repository.SolicitacaoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,7 @@ class UsuarioServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new UsuarioService(repository, new UsuarioMapper());
+        service = new UsuarioService(repository, new UsuarioMapper(), mock(SolicitacaoRepository.class));
     }
 
     @Test

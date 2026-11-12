@@ -10,6 +10,8 @@ public record Solicitacao(
         TipoResiduo tipo,
         Integer quantidade,
         String descricao,
-        StatusSolicitacao status
+        StatusSolicitacao status,
+        String usuarioId,
+        String pontoColetaId
 ) {
 }

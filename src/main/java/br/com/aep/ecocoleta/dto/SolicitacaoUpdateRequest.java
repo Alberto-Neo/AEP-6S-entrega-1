@@ -23,6 +23,12 @@ public record SolicitacaoUpdateRequest(
         String descricao,
 
         @NotNull(message = "O status e obrigatorio")
-        StatusSolicitacao status
+        StatusSolicitacao status,
+
+        @NotBlank(message = "O usuario e obrigatorio")
+        String usuarioId,
+
+        @NotBlank(message = "O ponto de coleta e obrigatorio")
+        String pontoColetaId
 ) {
 }

@@ -43,12 +43,13 @@ class SolicitacaoControllerTest {
     void deveCriarSolicitacao() throws Exception {
         when(service.criar(any())).thenReturn(new SolicitacaoResponse(
                 "1", "Descarte de eletrônico", TipoResiduo.ELETRONICO, 1,
-                "Monitor antigo", StatusSolicitacao.ABERTA));
+                "Monitor antigo", StatusSolicitacao.ABERTA, "u1", "p1"));
 
         mockMvc.perform(post("/api/solicitacoes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"Descarte de eletrônico",
                                   "tipo":"ELETRONICO",
                                   "quantidade":1,
@@ -66,6 +67,7 @@ class SolicitacaoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"",
                                   "tipo":"ELETRONICO",
                                   "quantidade":0,
@@ -82,7 +84,7 @@ class SolicitacaoControllerTest {
     void deveListarSolicitacoes() throws Exception {
         when(service.listar()).thenReturn(List.of(new SolicitacaoResponse(
                 "1", "Descarte de vidro", TipoResiduo.VIDRO, 2,
-                "Garrafas", StatusSolicitacao.ABERTA)));
+                "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1")));
 
         mockMvc.perform(get("/api/solicitacoes"))
                 .andExpect(status().isOk())
@@ -93,7 +95,7 @@ class SolicitacaoControllerTest {
     void deveBuscarPorId() throws Exception {
         when(service.buscarPorId("1")).thenReturn(new SolicitacaoResponse(
                 "1", "Descarte de vidro", TipoResiduo.VIDRO, 3,
-                "Garrafas", StatusSolicitacao.ABERTA));
+                "Garrafas", StatusSolicitacao.ABERTA, "u1", "p1"));
 
         mockMvc.perform(get("/api/solicitacoes/1"))
                 .andExpect(status().isOk())
@@ -113,12 +115,13 @@ class SolicitacaoControllerTest {
     void deveAtualizarSolicitacao() throws Exception {
         when(service.atualizar(eq("1"), any())).thenReturn(new SolicitacaoResponse(
                 "1", "Descarte de plástico", TipoResiduo.PLASTICO, 4,
-                "Garrafas PET", StatusSolicitacao.CONCLUIDA));
+                "Garrafas PET", StatusSolicitacao.CONCLUIDA, "u1", "p1"));
 
         mockMvc.perform(put("/api/solicitacoes/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
+                                  "usuarioId":"u1", "pontoColetaId":"p1",
                                   "titulo":"Descarte de plástico",
                                   "tipo":"PLASTICO",
                                   "quantidade":4,
@@ -143,7 +146,7 @@ class SolicitacaoControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"ausente", "null", "", "   "})
     void deveAceitarDescricaoOpcionalNaCriacaoEEdicao(String descricao) throws Exception {
-        ObjectNode dados = new ObjectMapper().createObjectNode()
+        ObjectNode dados = new ObjectMapper().createObjectNode().put("usuarioId", "u1").put("pontoColetaId", "p1")
                 .put("titulo", "Descarte de vidro")
                 .put("tipo", "VIDRO")
                 .put("quantidade", 1);
@@ -155,7 +158,7 @@ class SolicitacaoControllerTest {
 
         String descricaoEsperada = "ausente".equals(descricao) || "null".equals(descricao) ? null : descricao;
         when(service.criar(any())).thenReturn(new SolicitacaoResponse(
-                "1", "Descarte de vidro", TipoResiduo.VIDRO, 1, descricaoEsperada, StatusSolicitacao.ABERTA));
+                "1", "Descarte de vidro", TipoResiduo.VIDRO, 1, descricaoEsperada, StatusSolicitacao.ABERTA, "u1", "p1"));
         mockMvc.perform(post("/api/solicitacoes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(dados.toString()))
@@ -176,7 +179,7 @@ class SolicitacaoControllerTest {
     @ValueSource(strings = {"tituloAusente", "tituloNulo", "tituloVazio", "tituloBranco",
             "tipoAusente", "tipoNulo", "quantidadeAusente", "quantidadeNula", "zero", "negativa"})
     void deveValidarCamposObrigatoriosNaCriacaoEEdicao(String caso) throws Exception {
-        ObjectNode dados = new ObjectMapper().createObjectNode()
+        ObjectNode dados = new ObjectMapper().createObjectNode().put("usuarioId", "u1").put("pontoColetaId", "p1")
                 .put("titulo", "Descarte")
                 .put("tipo", "VIDRO")
                 .put("quantidade", 1)
@@ -207,7 +210,7 @@ class SolicitacaoControllerTest {
     @ParameterizedTest
     @ValueSource(strings = {"PILHA_BATERIA", "METAL", "MOVEL", "OUTRO"})
     void deveRejeitarTiposRemovidos(String tipo) throws Exception {
-        String dados = new ObjectMapper().createObjectNode()
+        String dados = new ObjectMapper().createObjectNode().put("usuarioId", "u1").put("pontoColetaId", "p1")
                 .put("titulo", "Descarte")
                 .put("tipo", tipo)
                 .put("quantidade", 1)

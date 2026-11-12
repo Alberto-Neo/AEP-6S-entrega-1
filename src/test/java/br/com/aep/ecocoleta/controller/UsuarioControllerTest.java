@@ -4,6 +4,7 @@ import br.com.aep.ecocoleta.exception.GlobalExceptionHandler;
 import br.com.aep.ecocoleta.mapper.UsuarioMapper;
 import br.com.aep.ecocoleta.model.Usuario;
 import br.com.aep.ecocoleta.repository.UsuarioRepository;
+import br.com.aep.ecocoleta.repository.SolicitacaoRepository;
 import br.com.aep.ecocoleta.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ class UsuarioControllerTest {
     @BeforeEach
     void setUp() {
         repository = mock(UsuarioRepository.class);
-        var service = new UsuarioService(repository, new UsuarioMapper());
+        var service = new UsuarioService(repository, new UsuarioMapper(), mock(SolicitacaoRepository.class));
         mockMvc = MockMvcBuilders.standaloneSetup(new UsuarioController(service))
                 .setControllerAdvice(new GlobalExceptionHandler()).build();
     }

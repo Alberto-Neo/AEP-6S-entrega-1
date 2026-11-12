@@ -19,6 +19,12 @@ public record SolicitacaoCreateRequest(
         Integer quantidade,
 
         @Size(max = 300, message = "A descricao deve ter no maximo 300 caracteres")
-        String descricao
+        String descricao,
+
+        @NotBlank(message = "O usuario e obrigatorio")
+        String usuarioId,
+
+        @NotBlank(message = "O ponto de coleta e obrigatorio")
+        String pontoColetaId
 ) {
 }

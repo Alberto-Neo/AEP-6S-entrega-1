@@ -180,6 +180,16 @@
             <input type="hidden" id="id">
 
             <label>
+                ID do usuário
+                <input id="usuarioId" type="text" required>
+            </label>
+
+            <label>
+                ID do ponto de coleta
+                <input id="pontoColetaId" type="text" required>
+            </label>
+
+            <label>
                 Título
                 <input id="titulo" type="text" maxlength="80" required>
             </label>
@@ -306,6 +316,9 @@
             status.className = 'status';
             status.textContent = `Status: ${solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída'}`;
             card.append(titulo, detalhes, status);
+            const vinculos = document.createElement('p');
+            vinculos.textContent = `Usuário: ${solicitacao.usuarioId || 'Não informado'} • Ponto: ${solicitacao.pontoColetaId || 'Não informado'}`;
+            card.append(vinculos);
             if (solicitacao.descricao?.trim()) {
                 const descricao = document.createElement('p');
                 descricao.textContent = solicitacao.descricao;
@@ -333,6 +346,8 @@
         }
 
         document.getElementById('id').value = solicitacao.id;
+        document.getElementById('usuarioId').value = solicitacao.usuarioId ?? '';
+        document.getElementById('pontoColetaId').value = solicitacao.pontoColetaId ?? '';
         document.getElementById('titulo').value = solicitacao.titulo;
         tituloPersonalizado = true;
         document.getElementById('tipo').value = solicitacao.tipo;
@@ -364,6 +379,8 @@
         event.preventDefault();
         const id = document.getElementById('id').value;
         const dados = {
+            usuarioId: document.getElementById('usuarioId').value.trim(),
+            pontoColetaId: document.getElementById('pontoColetaId').value.trim(),
             titulo: document.getElementById('titulo').value,
             tipo: document.getElementById('tipo').value,
             quantidade: Number(document.getElementById('quantidade').value),

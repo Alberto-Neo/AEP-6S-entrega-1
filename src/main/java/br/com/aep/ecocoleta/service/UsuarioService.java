@@ -8,6 +8,7 @@ import br.com.aep.ecocoleta.exception.ResourceNotFoundException;
 import br.com.aep.ecocoleta.mapper.UsuarioMapper;
 import br.com.aep.ecocoleta.model.Usuario;
 import br.com.aep.ecocoleta.repository.UsuarioRepository;
+import br.com.aep.ecocoleta.repository.SolicitacaoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,9 +19,12 @@ public class UsuarioService {
     private final UsuarioRepository repository;
     private final UsuarioMapper mapper;
 
-    public UsuarioService(UsuarioRepository repository, UsuarioMapper mapper) {
+    private final SolicitacaoRepository solicitacaoRepository;
+
+    public UsuarioService(UsuarioRepository repository, UsuarioMapper mapper, SolicitacaoRepository solicitacaoRepository) {
         this.repository = repository;
         this.mapper = mapper;
+        this.solicitacaoRepository = solicitacaoRepository;
     }
 
     public UsuarioResponse criar(UsuarioCreateRequest request) {
@@ -49,7 +53,11 @@ public class UsuarioService {
     }
 
     public void excluir(String id) {
-        repository.delete(obter(id));
+        Usuario usuario = obter(id);
+        if (solicitacaoRepository.existsByUsuarioId(usuario.id())) {
+            throw new BusinessException("Usuario possui solicitacoes vinculadas e nao pode ser excluido");
+        }
+        repository.delete(usuario);
     }
 
     public Usuario obter(String id) {
