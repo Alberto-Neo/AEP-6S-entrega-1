@@ -318,5 +318,5 @@ O EcoColeta busca contribuir com a organização do descarte de resíduos e com 
 Link: 
 
 ```text
-Adicionar link do vídeo após a publicação.
+https://youtu.be/0HFjapEBZOo
 ```
