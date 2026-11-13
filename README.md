@@ -320,3 +320,6 @@ Link:
 ```text
 https://youtu.be/0HFjapEBZOo
 ```
+## Quadro Kanban do Projeto
+Acompanhando o planejamento e o progresso das tarefas no link abaixo:
+[Acesso ao Quadro Kanban](https://github.com/users/AyrtonE01/projects/3/views/1)
