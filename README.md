@@ -1,114 +1,322 @@
-# EcoColeta - AEP 2026 - Primeira Entrega
+# EcoColeta — AEP Engenharia de Software
 
-## Problema
+O EcoColeta tem como objetivo auxiliar no registro e organização de solicitações para descarte de resíduos, relacionando usuários, pontos de coleta e os materiais que serão descartados.
 
-O descarte inadequado de resíduos pode gerar impactos ambientais e dificultar a destinação correta de materiais. A PoC EcoColeta demonstra uma forma simples de registrar e gerenciar solicitações de descarte.
+O projeto está relacionado ao **ODS 12 — Consumo e Produção Responsáveis**, incentivando práticas de descarte e consumo mais conscientes.
 
-## ODS
+## Evolução do projeto
 
-O projeto está alinhado ao **ODS 12 - Consumo e Produção Responsáveis**, por incentivar a organização do descarte de resíduos.
+A aplicação foi desenvolvida de forma incremental.
 
-## Escopo desta versão
+### Primeira entrega
 
-Esta é propositalmente uma versão inicial e simples da PoC:
+A primeira versão possuía:
 
-- uma única coleção NoSQL: `solicitacoes`;
-- documentos homogêneos e de estrutura simples;
+- uma única coleção MongoDB: `solicitacoes`;
+- documentos simples e homogêneos;
 - operações básicas de CRUD;
 - interface web simples;
 - testes automatizados;
-- cobertura mínima de 70% verificada pelo JaCoCo.
+- cobertura de testes com JaCoCo.
 
-### Documento armazenado
+### Segunda entrega
 
-```json
-{
-  "titulo": "Descarte de eletrônico",
-  "tipo": "ELETRONICO",
-  "quantidade": 1,
-  "descricao": "Monitor antigo para descarte",
-  "status": "ABERTA"
-}
-```
+Na segunda etapa, a aplicação foi evoluída para possuir:
 
-## Tecnologias
+- múltiplas coleções MongoDB;
+- relacionamento entre coleções;
+- documentos aninhados;
+- lista de subdocumentos;
+- gerenciamento de usuários;
+- pontos de coleta pré-definidos;
+- interface adaptada à nova modelagem;
+- testes automatizados atualizados;
+- documentação técnica da solução.
+
+## Tecnologias utilizadas
 
 - Java 21
 - Spring Boot
-- Spring Web
 - Spring Data MongoDB
-- Jakarta Validation
 - MongoDB
-- HTML, CSS e JavaScript
-- JUnit 5, Mockito e MockMvc
+- Maven
+- JUnit
 - JaCoCo
-- Maven
+- HTML
+- CSS
+- JavaScript
+- Git e GitHub
 
-## Requisitos locais
+## Estrutura do banco de dados
 
-- JDK 21
-- Maven
-- MongoDB em execução na porta padrão `27017`
+A versão atual utiliza três coleções principais.
 
-O banco utilizado é:
+### `usuarios`
+
+Representa os usuários relacionados às solicitações.
+
+Exemplo:
+
+```json
+{
+  "id": "usuario123",
+  "nome": "Teste",
+  "email": "Teste@email.com",
+  "criadoEm": "2026-11-12T10:00:00"
+}
+```
+
+### `pontos_coleta`
+
+Contém os pontos de coleta disponíveis na aplicação.
+
+Os pontos são inicializados automaticamente e podem ser consultados pela API.
+
+Exemplo:
+
+```json
+{
+  "id": "ponto123",
+  "nome": "Ponto de Coleta Central",
+  "endereco": "Av. Exemplo, 100"
+}
+```
+
+### `solicitacoes`
+
+Representa as solicitações de descarte.
+
+Na segunda entrega essa coleção passou a possuir relacionamentos com usuários e pontos de coleta, além de estruturas mais complexas.
+
+Exemplo simplificado:
+
+```json
+{
+  "id": "solicitacao123",
+  "usuarioId": "usuario123",
+  "pontoColetaId": "ponto123",
+  "titulo": "Descarte de eletrônicos",
+  "status": "ABERTA",
+  "endereco": {
+    "rua": "Rua A",
+    "numero": "100",
+    "bairro": "Centro",
+    "cidade": "Maringá"
+  },
+  "itens": [
+    {
+      "tipo": "ELETRONICO",
+      "quantidade": 2
+    }
+  ]
+}
+```
+
+Dessa forma, a aplicação demonstra:
+
+- múltiplas coleções;
+- relacionamento entre coleções;
+- objeto aninhado (`Endereco`);
+- lista de subdocumentos (`ItemResiduo`).
+
+## Organização da aplicação
+
+O backend utiliza separação de responsabilidades por camadas:
 
 ```text
-ecocoleta_entrega1
+Controller
+    ↓
+Service
+    ↓
+Repository
+    ↓
+MongoDB
+```
+
+Também são utilizados:
+
+- Models para representar os documentos;
+- DTOs para entrada e saída de dados;
+- Mappers para conversão entre objetos;
+- tratamento centralizado de exceções;
+- testes automatizados das principais funcionalidades.
+
+## Principais endpoints
+
+### Usuários
+
+```text
+POST   /api/usuarios
+GET    /api/usuarios
+GET    /api/usuarios/{id}
+PUT    /api/usuarios/{id}
+DELETE /api/usuarios/{id}
+```
+
+### Pontos de coleta
+
+```text
+GET /api/pontos
+GET /api/pontos/{id}
+```
+
+Os pontos de coleta são pré-definidos pela aplicação e não possuem cadastro manual pela API.
+
+### Solicitações
+
+```text
+POST   /api/solicitacoes
+GET    /api/solicitacoes
+GET    /api/solicitacoes/{id}
+PUT    /api/solicitacoes/{id}
+DELETE /api/solicitacoes/{id}
 ```
 
 ## Como executar
 
-1. Inicie o MongoDB local.
-2. Na raiz do projeto, execute:
+### Pré-requisitos
+
+É necessário possuir:
+
+- Java 21;
+- Maven;
+- MongoDB instalado e em execução.
+
+### 1. Iniciar o MongoDB
+
+No Windows, caso o MongoDB esteja instalado como serviço:
+
+```powershell
+Start-Service MongoDB
+```
+
+Para verificar:
+
+```powershell
+Get-Service MongoDB
+```
+
+O serviço deve aparecer como `Running`.
+
+### 2. Executar a aplicação
+
+A aplicação pode ser iniciada pelo método `main` da classe:
+
+```text
+EcoColetaApplication.java
+```
+
+ou pelo Maven:
 
 ```powershell
 mvn spring-boot:run
 ```
 
-3. Abra no navegador:
+### 3. Abrir a aplicação
+
+Com o backend iniciado:
 
 ```text
 http://localhost:8080
 ```
 
-## API
+## Testes automatizados
 
-| Método | Endpoint | Ação |
-|---|---|---|
-| POST | `/api/solicitacoes` | Criar solicitação |
-| GET | `/api/solicitacoes` | Listar solicitações |
-| GET | `/api/solicitacoes/{id}` | Buscar por ID |
-| PUT | `/api/solicitacoes/{id}` | Atualizar |
-| DELETE | `/api/solicitacoes/{id}` | Excluir |
-
-## Testes e cobertura
-
-Execute:
+Os testes podem ser executados com:
 
 ```powershell
 mvn clean verify
 ```
 
-O JaCoCo está configurado para exigir no mínimo 70% de cobertura de linhas no código considerado pela medição.
+Esse comando:
 
-Após a execução, o relatório HTML fica em:
+- compila o projeto;
+- executa os testes automatizados;
+- valida a aplicação;
+- gera o relatório de cobertura do JaCoCo.
+
+Na última validação da segunda entrega foram executados **100 testes sem falhas**.
+
+## Cobertura de testes
+
+O projeto utiliza JaCoCo para medir a cobertura.
+
+Após executar:
+
+```powershell
+mvn clean verify
+```
+
+o relatório pode ser encontrado em:
 
 ```text
 target/site/jacoco/index.html
 ```
 
-## Estrutura principal
+No Windows:
 
-```text
-src/main/java/br/com/aep/ecocoleta
-├── controller
-├── dto
-├── exception
-├── model
-├── repository
-└── service
+```powershell
+start target\site\jacoco\index.html
 ```
 
-## Evolução futura
+A última validação apresentou **100% das linhas consideradas pelo JaCoCo**, mantendo as exclusões configuradas no projeto.
 
-Funcionalidades como múltiplas coleções, usuários, pontos de coleta, relacionamentos e documentos aninhados ficam reservadas para a evolução posterior da PoC.
+A AEP exige cobertura mínima de 70%.
+
+## Versionamento
+
+O desenvolvimento foi realizado de forma incremental no GitHub.
+
+A primeira entrega possuía apenas a estrutura simples de solicitações.
+
+Na segunda entrega foram adicionados gradualmente:
+
+1. gerenciamento de usuários;
+2. pontos de coleta pré-definidos;
+3. relacionamento entre coleções;
+4. estruturas complexas nas solicitações;
+5. atualização da interface;
+6. atualização dos testes;
+7. documentação final.
+
+O histórico de commits permite acompanhar essa evolução.
+
+A versão final da segunda entrega será identificada pela tag:
+
+```text
+entrega-2
+```
+
+## Estrutura resumida
+
+```text
+src/
+├── main/
+│   ├── java/
+│   │   └── ...
+│   │       ├── controller/
+│   │       ├── dto/
+│   │       ├── exception/
+│   │       ├── mapper/
+│   │       ├── model/
+│   │       ├── repository/
+│   │       └── service/
+│   └── resources/
+│       ├── static/
+│       └── application.properties
+└── test/
+    └── java/
+```
+
+## ODS
+
+**ODS 12 — Consumo e Produção Responsáveis**
+O EcoColeta busca contribuir com a organização do descarte de resíduos e com a conscientização sobre práticas de consumo e descarte mais responsáveis.
+
+## Vídeo da segunda entrega
+
+Link: 
+
+```text
+Adicionar link do vídeo após a publicação.
+```
