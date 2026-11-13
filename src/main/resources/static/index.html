@@ -5,247 +5,224 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoColeta - Solicitações</title>
     <style>
-        * {
-            box-sizing: border-box;
+        :root {
+            --verde: #246447;
+            --verde-escuro: #184c35;
+            --texto: #20362b;
+            --muted: #596c61;
+            --borda: #dce5de;
+            --fundo: #f3f6f2;
         }
 
+        * { box-sizing: border-box; }
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            background: #f5f6f7;
-            color: #222;
+            font-family: "Segoe UI", Arial, sans-serif;
+            line-height: 1.5;
+            color: var(--texto);
+            background: var(--fundo);
         }
-
-        header {
-            background: #fff;
-            border-bottom: 1px solid #ddd;
-            padding: 22px;
+        header { background: var(--verde); border-bottom: 1px solid var(--verde-escuro); }
+        .cabecalho {
+            max-width: 1040px;
+            margin: auto;
+            padding: 28px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
         }
-
-        header > * {
-            max-width: 968px;
-            margin-left: auto;
-            margin-right: auto;
-        }
-
-        header h1 {
-            margin: 0 auto 5px;
-        }
-
-        main {
-            max-width: 1000px;
-            margin: 24px auto;
-            padding: 0 16px;
-        }
-
+        h1 { margin: 0; font-size: 1.85rem; letter-spacing: -0.05em; color: #fff; }
+        .cabecalho p { margin: 4px 0 0; color: #e2f0e7; }
+        main { max-width: 1040px; margin: 28px auto 48px; padding: 0 24px; }
         section {
             background: #fff;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 1px solid var(--borda);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgb(30 60 40 / 4%);
         }
-
-        form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-
-        label {
+        .secao-titulo {
             display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-weight: bold;
-        }
-
-        label.full {
-            grid-column: 1 / -1;
-        }
-
-        input, select, textarea, button {
-            font: inherit;
-            padding: 10px;
-        }
-
-        textarea {
-            min-height: 85px;
-            resize: vertical;
-        }
-
-        .actions {
-            grid-column: 1 / -1;
-            display: flex;
+            align-items: center;
+            justify-content: space-between;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
-
-        button {
-            cursor: pointer;
-            border: 1px solid #aaa;
-            border-radius: 7px;
-            background: #fff;
-        }
-
-        button.primary {
-            background: #286347;
-            color: #fff;
-            border-color: #286347;
-        }
-
-        .status {
-            font-weight: bold;
-        }
-
-        #mensagem {
-            min-height: 22px;
-            margin: 10px 0 0;
-        }
-
+        h2 { margin: 0; font-size: 1.3rem; letter-spacing: -0.02em; }
+        .secao-titulo p, .intro { margin: 5px 0 0; color: var(--muted); font-size: 0.94rem; }
+        form { display: grid; gap: 22px; }
         fieldset {
-            grid-column: 1 / -1;
+            margin: 0;
             min-width: 0;
-            border: 1px solid #d9e1dc;
-            border-radius: 8px;
-            padding: 16px;
+            border: 1px solid var(--borda);
+            border-radius: 12px;
+            padding: 20px;
         }
-
-        legend {
-            font-weight: bold;
-            padding: 0 6px;
+        legend { padding: 0 8px; font-weight: 650; font-size: 1rem; }
+        .numero-grupo {
+            display: inline-grid;
+            place-items: center;
+            width: 25px;
+            height: 25px;
+            margin-right: 8px;
+            border-radius: 50%;
+            background: #e9f2ec;
+            color: var(--verde);
+            font-size: 0.8rem;
         }
-
-        .endereco-campos, .item-residuo {
+        .campos, .endereco-campos {
             display: grid;
             grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-            gap: 12px;
+            align-items: start;
+            gap: 18px;
         }
-
-        .item-residuo {
-            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
-            align-items: end;
-            padding-bottom: 12px;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #d9e1dc;
-        }
-
-        form > label, .item-residuo > label {
-            min-width: 0;
-        }
-
-        .ajuda {
-            font-size: 0.9rem;
-            font-weight: normal;
-            color: #555;
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 700px) {
-            form, .endereco-campos, .item-residuo {
-                grid-template-columns: 1fr;
-            }
-            label.full, .actions {
-                grid-column: 1;
-            }
-        }
-
-        h2 {
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-
+        label { display: flex; flex-direction: column; gap: 7px; min-width: 0; font-weight: 600; font-size: 0.92rem; }
+        label.full, .actions { grid-column: 1 / -1; }
+        input, select, textarea, button { font: inherit; }
         input, select, textarea {
             width: 100%;
-            border: 1px solid #aebbb3;
-            border-radius: 6px;
-            background: #fff;
-        }
-
-        :focus-visible {
-            outline: 3px solid #528569;
-            outline-offset: 2px;
-        }
-
-        button:hover {
-            filter: brightness(0.94);
-        }
-
-        button.danger {
-            color: #a12c2c;
-            border-color: #a12c2c;
-        }
-
-        .lista {
-            display: grid;
-            gap: 16px;
-            margin-top: 16px;
-        }
-
-        .card {
-            border: 1px solid #d9e1dc;
+            min-width: 0;
+            min-height: 44px;
+            padding: 10px 12px;
+            border: 1px solid #b7c7bd;
             border-radius: 8px;
+            background: #fff;
+            color: var(--texto);
+            font-weight: 400;
+        }
+        input::placeholder, textarea::placeholder { color: #718078; }
+        select:disabled { background: #f3f5f3; color: var(--muted); }
+        textarea { min-height: 92px; resize: vertical; }
+        :focus-visible { outline: 3px solid #83ad92; outline-offset: 3px; }
+        button {
+            min-height: 42px;
+            padding: 9px 15px;
+            border: 1px solid #bdcdc2;
+            border-radius: 8px;
+            background: #fff;
+            color: var(--verde-escuro);
+            font-weight: 600;
+            cursor: pointer;
+        }
+        button:hover:not(:disabled) { background: #edf4ee; border-color: #8aaa94; }
+        button.primary { background: var(--verde); border-color: var(--verde); color: #fff; }
+        button.primary:hover:not(:disabled) { background: var(--verde-escuro); }
+        button.danger { color: #a12d34; border-color: #e1bfc2; }
+        button.danger:hover:not(:disabled) { background: #fff1f2; border-color: #c98990; }
+        button.discreto { background: #f4f7f3; font-size: 0.86rem; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+        .form-acoes { border-top: 1px solid var(--borda); padding-top: 20px; }
+        .campo-usuario { display: grid; gap: 10px; min-width: 0; }
+        .campo-usuario > button { justify-self: start; }
+        .ajuda { color: var(--muted); font-weight: 400; font-size: 0.83rem; overflow-wrap: anywhere; }
+        .ajuda:empty { display: none; }
+        .ajuda[data-tipo="erro"] { color: #a12d34; }
+        .item-residuo {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+            align-items: end;
+            gap: 14px;
             padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid var(--borda);
+            border-radius: 10px;
+            background: #f7f9f6;
+        }
+        .mensagem {
+            margin: 18px 0 0;
+            padding: 12px 16px;
+            border: 1px solid #d5e1d8;
+            border-radius: 8px;
+            background: #f1f5f2;
+            color: #40574a;
             overflow-wrap: anywhere;
         }
-
-        .card h3 {
-            margin: 0 0 12px;
+        .mensagem:empty { display: none; }
+        .mensagem[data-tipo="sucesso"] { background: #edf7ef; border-color: #b9d9c1; color: #235a35; }
+        .mensagem[data-tipo="erro"] { background: #fff2f2; border-color: #ecc6c8; color: #902b32; }
+        .lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+        .vazio { grid-column: 1 / -1; padding: 32px 20px; text-align: center; border: 1px dashed #c7d5cb; border-radius: 12px; color: var(--muted); background: #f8faf7; }
+        .card { min-width: 0; border: 1px solid var(--borda); border-radius: 12px; padding: 20px; overflow-wrap: anywhere; }
+        .card-topo { display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+        .card h3 { margin: 0; font-size: 1.05rem; flex: 1 1 180px; }
+        .status { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 650; white-space: nowrap; }
+        .status.aberta { color: #7c5917; background: #fbf1db; }
+        .status.concluida { color: #28623e; background: #eaf4ed; }
+        .card dl { display: grid; gap: 12px; margin: 0 0 18px; }
+        .card dt { font-size: 0.74rem; font-weight: 650; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .card dd { margin: 3px 0 0; font-size: 0.92rem; white-space: pre-wrap; }
+        .card .referencia { font-size: 0.8rem; color: var(--muted); }
+        .card .actions { padding-top: 16px; border-top: 1px solid var(--borda); }
+        dialog {
+            width: min(460px, calc(100% - 32px));
+            max-height: calc(100% - 32px);
+            overflow: auto;
+            padding: 28px;
+            border: 1px solid var(--borda);
+            border-radius: 16px;
+            color: var(--texto);
+            box-shadow: 0 20px 70px rgb(20 40 30 / 20%);
         }
-
-        .card p {
-            margin: 0 0 12px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-        }
-
-        .status {
-            color: #286347;
-        }
+        dialog::backdrop { background: rgb(20 38 28 / 45%); }
+        #formUsuario { margin-top: 22px; }
     </style>
 </head>
 <body>
 <header>
-    <h1>EcoColeta</h1>
-    <div>PoC para cadastro e gerenciamento simples de solicitações de descarte.</div>
+    <div class="cabecalho">
+        <div>
+            <h1>EcoColeta</h1>
+            <p>Solicitação de descarte responsável de resíduos</p>
+        </div>
+    </div>
 </header>
 
 <main>
     <section>
-        <h2 id="tituloFormulario">Nova solicitação</h2>
+        <div class="secao-titulo">
+            <div>
+                <h2 id="tituloFormulario">Nova solicitação</h2>
+                <p>Escolha o ponto de coleta e informe os materiais para descarte.</p>
+            </div>
+        </div>
         <form id="formSolicitacao">
             <input type="hidden" id="id">
 
-            <label>
-                Usuário
-                <select id="usuarioId" required disabled aria-describedby="usuariosAviso">
-                    <option value="">Carregando usuários...</option>
-                </select>
-                <span class="ajuda" id="usuariosAviso" role="status"></span>
-            </label>
+            <fieldset>
+                <legend><span class="numero-grupo" aria-hidden="true">1</span>Identificação</legend>
+                <div class="campos">
+                    <div class="campo-usuario">
+                        <label>
+                            Usuário
+                            <select id="usuarioId" required disabled aria-describedby="usuariosAviso">
+                                <option value="">Carregando usuários...</option>
+                            </select>
+                            <span class="ajuda" id="usuariosAviso" role="status"></span>
+                        </label>
+                        <button type="button" id="abrirCadastroUsuario" aria-haspopup="dialog"
+                                aria-controls="cadastroUsuario">+ Cadastrar usuário</button>
+                    </div>
 
-            <label>
-                Ponto de coleta
-                <select id="pontoColetaId" required disabled aria-describedby="pontosAviso">
-                    <option value="">Carregando pontos...</option>
-                </select>
-                <span class="ajuda" id="pontosAviso" role="status"></span>
-            </label>
+                    <label>
+                        Ponto de coleta
+                        <select id="pontoColetaId" required disabled aria-describedby="pontosAviso">
+                            <option value="">Carregando pontos...</option>
+                        </select>
+                        <span class="ajuda" id="pontosAviso" role="status"></span>
+                    </label>
 
-            <div class="actions">
-                <button type="button" id="recarregarOpcoes">Atualizar usuários e pontos</button>
-            </div>
-
-            <label class="full">
-                Título
-                <input id="titulo" type="text" maxlength="80" required>
-            </label>
+                    <div class="actions">
+                        <button type="button" class="discreto" id="recarregarOpcoes">Atualizar usuários e pontos</button>
+                    </div>
+                </div>
+            </fieldset>
 
             <fieldset>
-                <legend>Endereço da coleta</legend>
+                <legend><span class="numero-grupo" aria-hidden="true">2</span>Endereço da coleta</legend>
                 <div class="endereco-campos">
                     <label>Rua <input id="rua" required></label>
                     <label>Número <input id="numero" required></label>
@@ -255,43 +232,76 @@
             </fieldset>
 
             <fieldset>
-                <legend>Itens de resíduo</legend>
+                <legend><span class="numero-grupo" aria-hidden="true">3</span>Resíduos</legend>
                 <div id="itens"></div>
                 <button type="button" id="adicionarItem">Adicionar item</button>
             </fieldset>
 
-            <label id="campoStatus" style="display:none">
-                Status
-                <select id="status">
-                    <option value="ABERTA">Aberta</option>
-                    <option value="CONCLUIDA">Concluída</option>
-                </select>
-            </label>
+            <fieldset>
+                <legend><span class="numero-grupo" aria-hidden="true">4</span>Informações da solicitação</legend>
+                <div class="campos">
+                    <label class="full">
+                        Título
+                        <input id="titulo" type="text" maxlength="80" required>
+                    </label>
 
-            <label class="full">
-                Descrição (opcional)
-                <textarea id="descricao" maxlength="300" placeholder="Descreva brevemente o material que será descartado"></textarea>
-            </label>
+                    <label id="campoStatus" style="display:none">
+                        Status
+                        <select id="status">
+                            <option value="ABERTA">Aberta</option>
+                            <option value="CONCLUIDA">Concluída</option>
+                        </select>
+                    </label>
 
-            <div class="actions">
+                    <label class="full">
+                        Descrição (opcional)
+                        <textarea id="descricao" maxlength="300" placeholder="Descreva brevemente o material que será descartado"></textarea>
+                    </label>
+                </div>
+            </fieldset>
+
+            <div class="actions form-acoes">
                 <button class="primary" id="salvar" type="submit" disabled>Cadastrar solicitação</button>
                 <button type="button" id="cancelar" style="display:none">Cancelar edição</button>
             </div>
         </form>
-        <div id="mensagem" role="status" aria-live="polite"></div>
+        <div id="mensagem" class="mensagem" role="status" aria-live="polite"></div>
     </section>
 
     <section>
-        <h2>Solicitações cadastradas</h2>
-        <button type="button" onclick="carregarSolicitacoes()">Atualizar lista</button>
+        <div class="secao-titulo">
+            <div>
+                <h2>Solicitações cadastradas</h2>
+                <p>Consulte os detalhes e acompanhe seus descartes.</p>
+            </div>
+            <button type="button" onclick="carregarSolicitacoes()">Atualizar lista</button>
+        </div>
         <div id="lista" class="lista"></div>
     </section>
 </main>
+
+<dialog id="cadastroUsuario" aria-labelledby="tituloCadastroUsuario">
+    <h2 id="tituloCadastroUsuario">Cadastrar usuário</h2>
+    <p class="intro">Informe quem será responsável pela solicitação.</p>
+    <form id="formUsuario" novalidate>
+        <label>Nome <input id="nomeUsuario" name="nome" autocomplete="name" required></label>
+        <label>E-mail <input id="emailUsuario" name="email" type="email" autocomplete="email" required></label>
+        <div class="actions">
+            <button class="primary" id="cadastrarUsuario" type="submit">Cadastrar</button>
+            <button id="cancelarCadastroUsuario" type="button">Cancelar</button>
+        </div>
+    </form>
+    <p id="mensagemUsuario" class="mensagem" data-tipo="erro" role="status" aria-live="polite"></p>
+</dialog>
 
 <script>
     const API = '/api/solicitacoes';
     const form = document.getElementById('formSolicitacao');
     const mensagem = document.getElementById('mensagem');
+    const cadastroUsuario = document.getElementById('cadastroUsuario');
+    const formUsuario = document.getElementById('formUsuario');
+    const mensagemUsuario = document.getElementById('mensagemUsuario');
+    let cadastrandoUsuario = false;
     const tipos = {
         ELETRONICO: 'Eletrônico',
         PAPEL_PAPELAO: 'Papel e papelão',
@@ -329,7 +339,7 @@
         } else if (!estado.dados.length) {
             placeholder = 'Nenhuma opção disponível';
             aviso = id === 'usuarioId'
-                ? 'Nenhum usuário cadastrado. Cadastre um usuário pela API e atualize as opções.'
+                ? 'Nenhum usuário cadastrado. Use “+ Cadastrar usuário” para começar.'
                 : 'Nenhum ponto cadastrado. Verifique a inicialização da aplicação e atualize as opções.';
         } else if (selecionado && !estado.dados.some(item => item.id === selecionado)) {
             aviso = `Vínculo anterior indisponível (${selecionado}). Selecione uma opção existente.`;
@@ -345,6 +355,7 @@
             aviso = atual.endereco;
         }
         document.getElementById(avisoId).textContent = aviso;
+        document.getElementById(avisoId).dataset.tipo = estado.erro ? 'erro' : 'info';
         atualizarBotaoSalvar();
     }
 
@@ -355,19 +366,23 @@
     }
 
     async function carregarOpcoes(url, estado) {
+        const versao = estado.versao = (estado.versao || 0) + 1;
         estado.carregando = true;
         estado.erro = false;
         atualizarSeletores();
         try {
             const resposta = await fetch(url);
             if (!resposta.ok) throw new Error('Falha no carregamento');
-            estado.dados = await resposta.json();
+            const dados = await resposta.json();
+            if (versao === estado.versao) estado.dados = dados;
         } catch (erro) {
-            estado.erro = true;
+            if (versao === estado.versao) estado.erro = true;
         } finally {
-            estado.carregando = false;
-            atualizarSeletores();
-            renderizarLista();
+            if (versao === estado.versao) {
+                estado.carregando = false;
+                atualizarSeletores();
+                renderizarLista();
+            }
         }
     }
 
@@ -379,6 +394,68 @@
             carregarOpcoes('/api/pontos', pontos)
         ]);
         botao.disabled = false;
+    }
+
+    function abrirCadastroUsuario() {
+        formUsuario.reset();
+        mensagemUsuario.textContent = '';
+        cadastroUsuario.showModal();
+        document.getElementById('nomeUsuario').focus();
+    }
+
+    async function cadastrarUsuario(event) {
+        event.preventDefault();
+        if (cadastrandoUsuario) return;
+        const nome = document.getElementById('nomeUsuario');
+        const email = document.getElementById('emailUsuario');
+        nome.value = nome.value.trim();
+        email.value = email.value.trim();
+        if (!nome.value || !email.value || email.validity.typeMismatch) {
+            mensagemUsuario.textContent = !nome.value ? 'Informe o nome do usuário.'
+                : !email.value ? 'Informe o e-mail do usuário.' : 'Informe um e-mail válido.';
+            (!nome.value ? nome : email).focus();
+            return;
+        }
+
+        cadastrandoUsuario = true;
+        const botao = document.getElementById('cadastrarUsuario');
+        const cancelar = document.getElementById('cancelarCadastroUsuario');
+        botao.disabled = cancelar.disabled = nome.disabled = email.disabled = true;
+        botao.textContent = 'Cadastrando...';
+        mensagemUsuario.textContent = '';
+        try {
+            const resposta = await fetch('/api/usuarios', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome: nome.value, email: email.value })
+            });
+            if (!resposta.ok) {
+                const erro = await resposta.json().catch(() => null);
+                const detalhes = Object.values(erro?.campos || {}).join(' ');
+                mensagemUsuario.textContent = detalhes || erro?.mensagem
+                    || 'Não foi possível cadastrar o usuário. Tente novamente.';
+                return;
+            }
+            const usuario = await resposta.json();
+            document.getElementById('usuarioId').dataset.selecionado = usuario.id;
+            await carregarOpcoes('/api/usuarios', usuarios);
+            if (usuarios.erro) {
+                // O POST foi concluído; não pedir que o usuário repita o cadastro.
+                usuarios.dados = usuarios.dados.filter(item => item.id !== usuario.id).concat(usuario);
+                atualizarSeletores();
+            }
+            cadastroUsuario.close();
+            mostrarMensagem(usuarios.erro
+                ? 'Usuário cadastrado, mas a lista não pôde ser atualizada. Use “Atualizar usuários e pontos”.'
+                : 'Usuário cadastrado com sucesso e selecionado para a solicitação.', usuarios.erro ? 'info' : 'sucesso');
+        } catch (erro) {
+            mensagemUsuario.textContent = 'Não foi possível confirmar o cadastro. Verifique a conexão. '
+                + 'Se o envio chegou ao servidor, o usuário aparecerá ao atualizar a lista.';
+        } finally {
+            cadastrandoUsuario = false;
+            botao.disabled = cancelar.disabled = nome.disabled = email.disabled = false;
+            botao.textContent = 'Cadastrar';
+        }
     }
 
     function nomeDoVinculo(estado, id) {
@@ -419,6 +496,7 @@
         const remover = document.createElement('button');
         remover.type = 'button';
         remover.textContent = 'Remover item';
+        remover.className = 'danger';
         remover.addEventListener('click', () => {
             if (document.querySelectorAll('.item-residuo').length === 1) {
                 mostrarMensagem('Informe pelo menos um item.');
@@ -439,8 +517,9 @@
         }
     }
 
-    function mostrarMensagem(texto) {
+    function mostrarMensagem(texto, tipo = 'info') {
         mensagem.textContent = texto;
+        mensagem.dataset.tipo = tipo;
     }
 
     function resetarFormulario() {
@@ -470,7 +549,7 @@
             solicitacoes = await resposta.json();
             renderizarLista();
         } catch (erro) {
-            mostrarMensagem(erro.message);
+            mostrarMensagem('Não foi possível carregar as solicitações. Verifique a conexão e tente novamente.', 'erro');
         }
     }
 
@@ -479,7 +558,10 @@
         lista.replaceChildren();
 
         if (solicitacoes.length === 0) {
-            lista.textContent = 'Nenhuma solicitação cadastrada.';
+            const vazio = document.createElement('div');
+            vazio.className = 'vazio';
+            vazio.textContent = 'Nenhuma solicitação cadastrada. Preencha o formulário para começar.';
+            lista.append(vazio);
             return;
         }
 
@@ -488,25 +570,36 @@
             card.className = 'card';
             const titulo = document.createElement('h3');
             titulo.textContent = solicitacao.titulo;
-            const detalhes = document.createElement('p');
-            detalhes.textContent = itensDaSolicitacao(solicitacao)
-                .map(item => `${tipos[item.tipo] || item.tipo}: ${item.quantidade}`).join(' • ');
-            const status = document.createElement('p');
-            status.className = 'status';
-            status.textContent = `Status: ${solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída'}`;
-            card.append(titulo, detalhes, status);
-            const vinculos = document.createElement('p');
-            vinculos.textContent = `Usuário: ${nomeDoVinculo(usuarios, solicitacao.usuarioId)} • Ponto: ${nomeDoVinculo(pontos, solicitacao.pontoColetaId)}`;
-            card.append(vinculos);
-            const endereco = document.createElement('p');
-            const e = solicitacao.endereco;
-            endereco.textContent = e ? `${e.rua}, ${e.numero} • ${e.bairro} • ${e.cidade}` : 'Endereço não informado';
-            card.append(endereco);
-            if (solicitacao.descricao?.trim()) {
-                const descricao = document.createElement('p');
-                descricao.textContent = solicitacao.descricao;
-                card.append(descricao);
+            const topo = document.createElement('div');
+            topo.className = 'card-topo';
+            const status = document.createElement('span');
+            status.className = `status ${solicitacao.status === 'ABERTA' ? 'aberta' : 'concluida'}`;
+            status.textContent = solicitacao.status === 'ABERTA' ? 'Aberta' : 'Concluída';
+            topo.append(titulo, status);
+            const dados = document.createElement('dl');
+            function detalhe(rotulo, valor, discreto = false) {
+                const grupo = document.createElement('div');
+                const termo = document.createElement('dt');
+                termo.textContent = rotulo;
+                const descricao = document.createElement('dd');
+                descricao.textContent = valor;
+                if (discreto) descricao.className = 'referencia';
+                grupo.append(termo, descricao);
+                dados.append(grupo);
             }
+            detalhe('Usuário', nomeDoVinculo(usuarios, solicitacao.usuarioId),
+                !usuarios.dados.some(item => item.id === solicitacao.usuarioId));
+            detalhe('Ponto de coleta', nomeDoVinculo(pontos, solicitacao.pontoColetaId),
+                !pontos.dados.some(item => item.id === solicitacao.pontoColetaId));
+            const e = solicitacao.endereco;
+            detalhe('Endereço', e ? `${e.rua}, ${e.numero} • ${e.bairro} • ${e.cidade}` : 'Não informado');
+            detalhe('Resíduos', itensDaSolicitacao(solicitacao)
+                .map(item => `${tipos[item.tipo] || item.tipo} • Quantidade: ${item.quantidade}`).join('\n') || 'Não informados');
+            const data = solicitacao.criadoEm ? new Date(solicitacao.criadoEm) : null;
+            detalhe('Criada em', data && !Number.isNaN(data.getTime())
+                ? data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : 'Não informada');
+            if (solicitacao.descricao?.trim()) detalhe('Descrição', solicitacao.descricao);
+            card.append(topo, dados);
             const acoes = document.createElement('div');
             acoes.className = 'actions';
             const editarBotao = document.createElement('button');
@@ -559,10 +652,10 @@
             const resposta = await fetch(`${API}/${encodeURIComponent(id)}`, { method: 'DELETE' });
             if (!resposta.ok) throw new Error('Não foi possível excluir a solicitação.');
             if (document.getElementById('id').value === id) resetarFormulario();
-            mostrarMensagem('Solicitação excluída.');
+            mostrarMensagem('Solicitação excluída.', 'sucesso');
             await carregarSolicitacoes();
         } catch (erro) {
-            mostrarMensagem('Não foi possível excluir a solicitação. Verifique a conexão e tente novamente.');
+            mostrarMensagem('Não foi possível excluir a solicitação. Verifique a conexão e tente novamente.', 'erro');
         }
     }
 
@@ -596,16 +689,16 @@
                 body: JSON.stringify(dados)
             });
             if (resposta.ok) {
-                mostrarMensagem(id ? 'Solicitação atualizada.' : 'Solicitação cadastrada.');
+                mostrarMensagem(id ? 'Solicitação atualizada.' : 'Solicitação cadastrada.', 'sucesso');
                 resetarFormulario();
                 await carregarSolicitacoes();
             } else {
                 const erro = await resposta.json().catch(() => null);
                 const detalhes = Object.values(erro?.campos || {}).join(' ');
-                mostrarMensagem(detalhes || erro?.mensagem || 'Verifique os dados informados.');
+                mostrarMensagem(detalhes || erro?.mensagem || 'Verifique os dados informados.', 'erro');
             }
         } catch (erro) {
-            mostrarMensagem('Não foi possível salvar. Verifique a conexão e tente novamente.');
+            mostrarMensagem('Não foi possível salvar. Verifique a conexão e tente novamente.', 'erro');
         } finally {
             salvando = false;
             atualizarBotaoSalvar();
@@ -619,6 +712,12 @@
         });
     }
     document.getElementById('recarregarOpcoes').addEventListener('click', carregarRelacionamentos);
+    document.getElementById('abrirCadastroUsuario').addEventListener('click', abrirCadastroUsuario);
+    document.getElementById('cancelarCadastroUsuario').addEventListener('click', () => cadastroUsuario.close());
+    cadastroUsuario.addEventListener('cancel', event => {
+        if (cadastrandoUsuario) event.preventDefault();
+    });
+    formUsuario.addEventListener('submit', cadastrarUsuario);
 
     document.getElementById('titulo').addEventListener('input', () => {
         tituloPersonalizado = document.getElementById('titulo').value.trim() !== '';
